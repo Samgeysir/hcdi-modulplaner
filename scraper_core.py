@@ -20,7 +20,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 BASE = "https://bariapi.fhnw.ch/cit_modulbeschreibungen/prod"
-DETAIL_WORKERS = 5
+# Parallele Detail-Requests. Live-Messung gegen die FHNW-API: Durchsatz plateauiert
+# bei ~10-12 req/s, getestet bis 40 Worker ohne Fehler/429. 10 = Sweet Spot (nutzt
+# das Limit aus, moderate Last). Die Hochschulen-Schleife bleibt bewusst sequenziell,
+# damit die Gesamt-Parallelität nicht auf 6×10 hochmultipliziert.
+DETAIL_WORKERS = 10
 MODULE_URL_BASE = "https://modulbeschreibungen.webapps.fhnw.ch/detail/"
 
 # Felder, die im Dashboard-Datensatz landen (Reihenfolge egal, JS liest per Name).
