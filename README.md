@@ -5,7 +5,25 @@ Dashboard zur Modulplanung darstellt — **ohne** Excel-Export, JSON-Konvertieru
 manuelle Build-Schritte. Semester sind frei wählbar; die Daten werden im Hintergrund
 geladen und pro Semester zwischengespeichert.
 
-## Schnellstart (macOS)
+## Fertige App herunterladen (kein Python nötig)
+
+Für die meisten Nutzer:innen der einfachste Weg — **eigenständige App, einfach doppelklicken**:
+
+1. Auf der **[Releases-Seite](../../releases)** das passende Paket herunterladen:
+   - **macOS:** `Modulplaner-macos.zip` → entpacken → `Modulplaner.app`
+   - **Windows:** `Modulplaner.exe`
+2. **Doppelklick.** Der Server startet und das Dashboard öffnet sich automatisch im Browser
+   unter <http://localhost:8000>.
+3. Beenden: macOS → App via Dock/**Cmd+Q** schliessen; Windows → das Konsolenfenster schliessen.
+
+> **Erststart-Hinweis (unsignierte App):**
+> - macOS: Rechtsklick auf `Modulplaner.app` → **Öffnen** → bestätigen (nur beim ersten Mal).
+> - Windows: Bei „Der Computer wurde geschützt" → **Weitere Informationen** → **Trotzdem ausführen**.
+
+Beim ersten Laden eines Semesters dauert das Scrapen einige Minuten, danach kommt alles aus dem
+lokalen Cache.
+
+## Schnellstart (macOS, mit Python)
 
 1. **Python 3** installieren (falls noch nicht vorhanden): <https://www.python.org/downloads/>
 2. Doppelklick auf **`run.command`**.
@@ -53,10 +71,21 @@ modulplaner_app/
 ├── scraper_core.py         # FHNW-Scraping-Logik (ohne UI), liefert Dashboard-Schema
 ├── templates/dashboard.html# Dashboard-Frontend (Live-Daten via fetch)
 ├── cache/                  # Pro-Semester JSON-Cache (modules_<Semester>.json)
-├── requirements.txt        # Abhängigkeiten
-├── run.command             # macOS-Doppelklick-Starter
+├── requirements.txt        # Laufzeit-Abhängigkeiten (flask, requests)
+├── requirements-dev.txt    # Build-Abhängigkeit (pyinstaller)
+├── modulplaner.spec        # PyInstaller-Spec (.app/.exe)
+├── build_mac.command       # macOS: baut dist/Modulplaner.app
+├── run.command             # macOS-Doppelklick-Starter (Dev, mit Python)
 └── README.md
 ```
+
+## Eigenständige App selbst bauen
+
+- **macOS:** Doppelklick auf **`build_mac.command`** → erzeugt `dist/Modulplaner.app`.
+- **Windows + macOS via GitHub Actions:** Der Workflow `.github/workflows/build.yml` baut beide
+  Pakete. Manuell starten unter **Actions → Build standalone apps → Run workflow** (Artefakte zum
+  Download). Ein Git-Tag `v*` (z.B. `v0.1.0`) hängt die Pakete zusätzlich an ein Release.
+  → So entsteht die Windows-`.exe` auch ohne Windows-Rechner.
 
 ## Datenquelle
 

@@ -14,6 +14,7 @@ Endpunkte:
 """
 
 import os
+import sys
 import json
 import threading
 import webbrowser
@@ -23,8 +24,40 @@ from flask import Flask, jsonify, request, send_from_directory
 import scraper_core
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_DIR = os.path.join(APP_DIR, "cache")
-TEMPLATES_DIR = os.path.join(APP_DIR, "templates")
+
+
+def _is_frozen():
+    """True, wenn als PyInstaller-Bundle (.app/.exe) ausgeführt."""
+    return getattr(sys, "frozen", False)
+
+
+def _resource_dir():
+    """Ordner mit mitgelieferten Dateien (templates/).
+
+    Im PyInstaller-Bundle liegen Daten unter sys._MEIPASS, sonst neben app.py.
+    """
+    return getattr(sys, "_MEIPASS", APP_DIR)
+
+
+def _cache_dir():
+    """Schreibbarer, persistenter Cache-Ordner.
+
+    Dev-Modus: cache/ neben app.py (unverändertes Verhalten). Gebündelt: ein
+    benutzer-schreibbarer Ort, da das App-Bundle/Programmverzeichnis read-only sein kann.
+    """
+    if not _is_frozen():
+        return os.path.join(APP_DIR, "cache")
+    if sys.platform == "darwin":
+        base = os.path.expanduser("~/Library/Application Support")
+    elif sys.platform.startswith("win"):
+        base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+    else:
+        return os.path.expanduser("~/.modulplaner")
+    return os.path.join(base, "Modulplaner")
+
+
+CACHE_DIR = _cache_dir()
+TEMPLATES_DIR = os.path.join(_resource_dir(), "templates")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 app = Flask(__name__)

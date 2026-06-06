@@ -1,0 +1,3 @@
+# Build-/Entwicklungs-Abhängigkeiten (nicht zur Laufzeit nötig).
+# Verpackt die App zu einer eigenständigen .app/.exe.
+pyinstaller>=6.0.0
