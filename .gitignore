@@ -7,9 +7,17 @@ __pycache__/
 .venv/
 venv/
 env/
+.build-venv/
+
+# PyInstaller-Build-Artefakte
+build/
+dist/
 
 # Cache (gescrapte Modul-Daten — werden zur Laufzeit erzeugt)
 cache/*.json
+
+# Lokale Tooling-Configs (Dev-Preview, hartkodierte Pfade)
+.claude/launch.json
 
 # Betriebssystem
 .DS_Store

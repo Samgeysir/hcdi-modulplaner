@@ -1,0 +1,67 @@
+name: Build standalone apps
+
+# Baut die eigenständigen Apps für macOS und Windows.
+# - manuell startbar (workflow_dispatch) zum Testen -> Artefakte zum Download
+# - bei Push eines Tags v* -> zusätzlich als Release-Assets veröffentlicht
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: Modulplaner-macos
+          - os: windows-latest
+            artifact: Modulplaner-windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Build with PyInstaller
+        run: pyinstaller --noconfirm modulplaner.spec
+
+      - name: Package macOS .app
+        if: runner.os == 'macOS'
+        run: |
+          cd dist
+          zip -ry Modulplaner-macos.zip Modulplaner.app
+
+      - name: Upload build artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/Modulplaner-macos.zip
+
+      - name: Upload build artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/Modulplaner.exe
+
+      - name: Attach to release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/Modulplaner-macos.zip
+            dist/Modulplaner.exe

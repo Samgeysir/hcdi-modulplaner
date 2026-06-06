@@ -14,17 +14,56 @@ Endpunkte:
 """
 
 import os
+import sys
 import json
+import time
+import socket
 import threading
 import webbrowser
+
+HOST = "127.0.0.1"
+PORT = 8000
+URL = f"http://{HOST}:{PORT}"
 
 from flask import Flask, jsonify, request, send_from_directory
 
 import scraper_core
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_DIR = os.path.join(APP_DIR, "cache")
-TEMPLATES_DIR = os.path.join(APP_DIR, "templates")
+
+
+def _is_frozen():
+    """True, wenn als PyInstaller-Bundle (.app/.exe) ausgeführt."""
+    return getattr(sys, "frozen", False)
+
+
+def _resource_dir():
+    """Ordner mit mitgelieferten Dateien (templates/).
+
+    Im PyInstaller-Bundle liegen Daten unter sys._MEIPASS, sonst neben app.py.
+    """
+    return getattr(sys, "_MEIPASS", APP_DIR)
+
+
+def _cache_dir():
+    """Schreibbarer, persistenter Cache-Ordner.
+
+    Dev-Modus: cache/ neben app.py (unverändertes Verhalten). Gebündelt: ein
+    benutzer-schreibbarer Ort, da das App-Bundle/Programmverzeichnis read-only sein kann.
+    """
+    if not _is_frozen():
+        return os.path.join(APP_DIR, "cache")
+    if sys.platform == "darwin":
+        base = os.path.expanduser("~/Library/Application Support")
+    elif sys.platform.startswith("win"):
+        base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+    else:
+        return os.path.expanduser("~/.modulplaner")
+    return os.path.join(base, "Modulplaner")
+
+
+CACHE_DIR = _cache_dir()
+TEMPLATES_DIR = os.path.join(_resource_dir(), "templates")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 app = Flask(__name__)
@@ -87,7 +126,9 @@ def index():
 @app.route("/api/semesters")
 def api_semesters():
     _, semesters, _ = scraper_core.load_available_facets()
-    out = [{"value": data["value"], "label": label} for label, data in semesters.items()]
+    out = [{"value": data["value"], "label": label,
+            "cached": os.path.exists(_cache_path(data["value"]))}
+           for label, data in semesters.items()]
     return jsonify(out)
 
 
@@ -137,13 +178,50 @@ def api_refresh():
 
 def _open_browser():
     try:
-        webbrowser.open("http://localhost:8000")
+        webbrowser.open(URL)
     except Exception:
         pass
 
 
+def _run_server():
+    """Flask im Hintergrund-Thread. Reloader aus (sonst zweiter Prozess)."""
+    app.run(host=HOST, port=PORT, debug=False, use_reloader=False)
+
+
+def _wait_for_server(timeout=20.0):
+    """Wartet, bis der Server Verbindungen annimmt (bevor das Fenster lädt)."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection((HOST, PORT), timeout=0.5):
+                return True
+        except OSError:
+            time.sleep(0.1)
+    return False
+
+
+def main():
+    """Startet den Server und zeigt das Dashboard in einem nativen Fenster.
+
+    Das Fenster verhält sich wie eine normale Mac-/Windows-App: Schliessen des
+    Fensters (rotes X / Cmd-Q) beendet den Prozess und damit den Server. Ist
+    pywebview nicht verfügbar, wird als Fallback der Standardbrowser geöffnet.
+    """
+    server = threading.Thread(target=_run_server, daemon=True)
+    server.start()
+    _wait_for_server()
+
+    try:
+        import webview  # pywebview: natives Fenster
+
+        webview.create_window("FHNW Modulplaner", URL, width=1400, height=900)
+        webview.start()  # blockiert bis das Fenster geschlossen wird
+        # Fenster zu -> Funktion kehrt zurück, daemon-Server endet mit dem Prozess
+    except Exception:
+        # Fallback ohne pywebview: Browser öffnen, Server am Leben halten
+        threading.Timer(1.0, _open_browser).start()
+        server.join()
+
+
 if __name__ == "__main__":
-    # Browser nur im Hauptprozess öffnen (nicht im Reloader-Kind)
-    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        threading.Timer(1.2, _open_browser).start()
-    app.run(host="127.0.0.1", port=8000, debug=False)
+    main()
