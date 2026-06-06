@@ -51,10 +51,21 @@ run.command              — macOS-Doppelklick-Starter (Dev, auto-venv)
 README.md                — Endnutzer-Anleitung (Deutsch)
 ```
 
+### Natives Fenster (pywebview)
+`app.py` öffnet das Dashboard in einem **nativen Fenster** (kein Browser-Tab). `main()` startet
+Flask in einem Daemon-Thread (`_run_server`), wartet per `_wait_for_server` (Socket-Poll) bis der
+Port antwortet, und zeigt dann `webview.create_window(...)` / `webview.start()`. `webview.start()`
+blockiert bis das Fenster geschlossen wird → der Daemon-Server endet mit dem Prozess. So beendet
+sich die App wie jede native App (rotes X / Cmd-Q / Alt-F4). Fehlt pywebview (oder kein
+Fenster-Backend), Fallback auf `_open_browser()` + `server.join()`. macOS nutzt das
+Cocoa/WebKit-Backend (pyobjc), Windows EdgeChromium (WebView2).
+
 ### Eigenständige App (PyInstaller)
-`modulplaner.spec` bündelt Python + Flask/requests + `templates/` zu einer doppelklickbaren App.
-- macOS: `BUNDLE` → `Modulplaner.app` (windowed, `console=False`); Quit via Dock/Cmd-Q.
-- Windows: onefile-`.exe` mit `console=True` (Konsolenfenster schliessen = beenden).
+`modulplaner.spec` bündelt Python + Flask/requests + pywebview + `templates/` zu einer
+doppelklickbaren App. pywebview wird via `collect_all("webview")` vollständig eingebunden.
+- macOS: `BUNDLE` → `Modulplaner.app` (windowed, `console=False`).
+- Windows: onefile-`.exe`, ebenfalls `console=False` (das pywebview-Fenster ist die App).
+  Für Debugging vorübergehend `console=True` setzen, um Server-Logs zu sehen.
 - `app.py` ist build-tauglich: `_resource_dir()` löst `templates/` über `sys._MEIPASS` auf;
   `_cache_dir()` schreibt im gebündelten Zustand (`sys.frozen`) in einen benutzer-schreibbaren
   Ordner (`~/Library/Application Support/Modulplaner` bzw. `%LOCALAPPDATA%\Modulplaner`), im

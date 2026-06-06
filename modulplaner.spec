@@ -9,11 +9,20 @@ Bauen:  pyinstaller --noconfirm modulplaner.spec
 """
 
 import sys
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_all
 
 # certifi-Zertifikate mitnehmen (TLS für requests gegen die FHNW-API)
 datas = [("templates", "templates")]
+binaries = []
+hiddenimports = ["certifi"]
 datas += collect_data_files("certifi")
+
+# pywebview (natives Fenster) vollständig einbinden inkl. plattformspezifischer
+# Backends (macOS: Cocoa/WebKit via pyobjc; Windows: EdgeChromium via pythonnet)
+_wv_datas, _wv_binaries, _wv_hidden = collect_all("webview")
+datas += _wv_datas
+binaries += _wv_binaries
+hiddenimports += _wv_hidden
 
 # Optionales App-Icon: lege icon.icns (macOS) bzw. icon.ico (Windows) neben diese
 # Spec, dann werden sie automatisch verwendet.
@@ -26,9 +35,9 @@ block_cipher = None
 a = Analysis(
     ["app.py"],
     pathex=[],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
-    hiddenimports=["certifi"],
+    hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
@@ -71,8 +80,10 @@ if sys.platform == "darwin":
         bundle_identifier="ch.fhnw.modulplaner",
     )
 else:
-    # Windows/Linux: onefile-EXE mit Konsole (zeigt Fortschritt/Fehler,
-    # Schließen des Fensters beendet die App sauber)
+    # Windows/Linux: onefile-EXE, windowed (kein Konsolenfenster) — das pywebview-
+    # Fenster ist die App; Schließen beendet sie. Bei fehlendem Fenster-Backend
+    # greift der Browser-Fallback in app.py, daher kein „stummer" Start.
+    # (Für Debugging vorübergehend console=True setzen, um Logs zu sehen.)
     exe = EXE(
         pyz,
         a.scripts,
@@ -87,6 +98,6 @@ else:
         upx=True,
         upx_exclude=[],
         runtime_tmpdir=None,
-        console=True,
+        console=False,
         icon=_icon_win,
     )

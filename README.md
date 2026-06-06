@@ -12,9 +12,9 @@ Für die meisten Nutzer:innen der einfachste Weg — **eigenständige App, einfa
 1. Auf der **[Releases-Seite](../../releases)** das passende Paket herunterladen:
    - **macOS:** `Modulplaner-macos.zip` → entpacken → `Modulplaner.app`
    - **Windows:** `Modulplaner.exe`
-2. **Doppelklick.** Der Server startet und das Dashboard öffnet sich automatisch im Browser
-   unter <http://localhost:8000>.
-3. Beenden: macOS → App via Dock/**Cmd+Q** schliessen; Windows → das Konsolenfenster schliessen.
+2. **Doppelklick.** Das Dashboard öffnet sich in einem **eigenen App-Fenster** (kein Browser nötig).
+3. Beenden wie jede andere App: **Fenster schliessen** (rotes X bzw. **Cmd+Q** auf macOS,
+   **Alt+F4** auf Windows). Damit wird auch der Hintergrund-Server beendet.
 
 > **Erststart-Hinweis (unsignierte App):**
 > - macOS: Rechtsklick auf `Modulplaner.app` → **Öffnen** → bestätigen (nur beim ersten Mal).
@@ -28,9 +28,9 @@ lokalen Cache.
 1. **Python 3** installieren (falls noch nicht vorhanden): <https://www.python.org/downloads/>
 2. Doppelklick auf **`run.command`**.
    - Beim ersten Start wird automatisch eine virtuelle Umgebung erstellt und die
-     Abhängigkeiten (`flask`, `requests`) installiert.
-   - Danach öffnet sich das Dashboard automatisch unter <http://localhost:8000>.
-3. Fenster offen lassen, solange du die App nutzt. Zum Beenden: **Strg+C** oder Fenster schliessen.
+     Abhängigkeiten installiert.
+   - Danach öffnet sich das Dashboard in einem **eigenen App-Fenster**.
+3. Beenden: **Fenster schliessen** (Cmd+Q) — beendet auch den Hintergrund-Server.
 
 > Falls macOS „run.command kann nicht geöffnet werden" meldet:
 > Rechtsklick → **Öffnen** → **Öffnen** bestätigen (nur beim ersten Mal nötig).
@@ -45,7 +45,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Dann <http://localhost:8000> im Browser öffnen.
+Das Dashboard öffnet sich in einem eigenen App-Fenster (via `pywebview`). Sollte auf einem
+System kein Fenster-Backend verfügbar sein, fällt die App automatisch auf den Standardbrowser
+unter <http://localhost:8000> zurück.
 
 ## Bedienung
 
