@@ -132,13 +132,26 @@ alten Roh-Exporte nutzten `hochschule` (klein) — das JS hat einen Fallback `m.
 
 ## GitHub & Arbeitsweise
 
-Das Projekt ist als öffentliches Git-Repository konzipiert. Wer es forkt oder klont, arbeitet mit
-seinem eigenen Remote — es gibt keinen fixen Repo-Pfad. Remote-URL und Branch-Stand jederzeit
-nachsehen:
-```bash
-git remote -v      # zeigt, wohin push/fetch gehen
-git status         # zeigt Branch und Änderungen
-```
+### Commits
+- Use Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, etc.
+- Keep subject line under 72 characters
+- Write in imperative mood ("Add feature" not "Added feature")
+- Reference issues: `fixes #123`
+
+### Branches
+- Feature branches: `feat/<short-description>`
+- Bug fixes: `fix/<short-description>`
+- Never commit directly to `main` or `develop`
+
+### Pull Requests
+- Keep PRs small and focused (one concern per PR)
+- Write a clear description explaining *why*, not just *what*
+- Link related issues
+- Ensure CI passes before requesting review
+
+### Code Review
+- Respond to all review comments before merging
+- Squash fixup commits before merge
 
 ### Was ins Repo gehört (und was nicht)
 Getrackt: Quellcode (`app.py`, `scraper_core.py`, `templates/dashboard.html`), `requirements.txt`,
