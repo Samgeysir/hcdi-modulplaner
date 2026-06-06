@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtuelle Umgebungen
+.venv/
+venv/
+env/
+
+# Cache (gescrapte Modul-Daten — werden zur Laufzeit erzeugt)
+cache/*.json
+
+# Betriebssystem
+.DS_Store
+Thumbs.db

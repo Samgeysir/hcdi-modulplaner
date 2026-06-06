@@ -1,0 +1,3853 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FHNW Modul-Dashboard</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* --- CSS Variables & Design System --- */
+    :root {
+      --font-header: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      
+      /* Color Palette (Deep Slate & Indigo Accent) */
+      --bg-base: #070a13;
+      --bg-surface: #0f1527;
+      --bg-panel: rgba(21, 30, 56, 0.6);
+      --bg-card: rgba(30, 41, 73, 0.4);
+      --bg-card-hover: rgba(37, 51, 90, 0.6);
+      
+      --accent: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      --accent-hover: #4f46e5;
+      
+      --border-color: rgba(99, 102, 241, 0.12);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --border-card: rgba(255, 255, 255, 0.05);
+      
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --danger-glow: rgba(239, 68, 68, 0.2);
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-glow: 0 0 25px 0 rgba(99, 102, 241, 0.2);
+      
+      --transition-fast: 0.15s ease;
+      --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* --- Base Resets & Layout --- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(17, 24, 39, 0.5) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Utility Styles */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: var(--transition-fast);
+    }
+    a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+    
+    /* --- Typography --- */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-header);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    /* --- Header --- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 10, 19, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .logo-icon {
+      width: 2.25rem;
+      height: 2.25rem;
+      background: var(--accent-gradient);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-family: var(--font-header);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+    
+    .logo-text h1 {
+      font-size: 1.5rem;
+      letter-spacing: -0.025em;
+    }
+    
+    .logo-text p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .semester-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      outline: none;
+      transition: var(--transition-normal);
+    }
+    .semester-select:hover { border-color: var(--accent); }
+    .semester-select option { background: var(--bg-surface); color: var(--text-primary); }
+
+    .load-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7, 10, 19, 0.82);
+      backdrop-filter: blur(8px);
+    }
+    .load-card {
+      background: var(--bg-panel, rgba(21, 30, 56, 0.85));
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 2rem 2.25rem;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .load-spinner {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 1.25rem;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: load-spin 0.9s linear infinite;
+    }
+    @keyframes load-spin { to { transform: rotate(360deg); } }
+    .load-message {
+      font-family: var(--font-header, sans-serif);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    .load-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .load-bar {
+      height: 100%;
+      width: 100%;
+      background: var(--accent-gradient, linear-gradient(135deg, #6366f1, #8b5cf6));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+    .load-hint {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      color: var(--text-muted, #6b7280);
+      line-height: 1.4;
+    }
+
+    .selection-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: var(--transition-normal);
+    }
+    .selection-badge:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-1px);
+    }
+    .selection-badge .count {
+      background: var(--accent-gradient);
+      color: white;
+      font-weight: 700;
+      padding: 0.1rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+    }
+    
+    .ects-calc {
+      font-weight: 600;
+      color: var(--success);
+    }
+    
+    .btn-share {
+      background: var(--accent-gradient);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+      transition: var(--transition-normal);
+    }
+    .btn-share:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* --- Tab Navigation --- */
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 2rem;
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+    
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-header);
+      font-size: 1.1rem;
+      font-weight: 500;
+      padding: 0.5rem 1.25rem;
+      cursor: pointer;
+      border-radius: 0.375rem;
+      transition: var(--transition-normal);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+    
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .tab-btn.active {
+      color: #fff;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .tab-btn .tab-badge {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      padding: 0.1rem 0.4rem;
+      border-radius: 9999px;
+    }
+    .tab-btn.active .tab-badge {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    
+    /* --- Catalog Page Layout --- */
+    .catalog-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    
+    @media (max-width: 1024px) {
+      .catalog-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* --- Sidebar Filters --- */
+    .sidebar {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      position: sticky;
+      top: 5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-height: calc(100vh - 8rem);
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .filter-section-title {
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .filter-reset-link {
+      font-size: 0.725rem;
+      text-transform: none;
+      letter-spacing: normal;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      user-select: none;
+    }
+    .filter-reset-link:hover {
+      color: var(--danger);
+    }
+    
+    .filter-group {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding-bottom: 1.25rem;
+    }
+    .filter-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    
+    .search-wrapper {
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      background: rgba(7, 10, 19, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition-normal);
+    }
+    .search-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+      background: rgba(7, 10, 19, 0.8);
+    }
+    
+    .search-icon-svg {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.1rem;
+      height: 1.1rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    
+    .clear-search-btn {
+      position: absolute;
+      right: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: none;
+    }
+    .clear-search-btn:hover {
+      color: var(--text-primary);
+    }
+    
+    /* Inputs */
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    
+    .input-control {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    
+    .input-control label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .text-input {
+      background: rgba(7, 10, 19, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      outline: none;
+      width: 100%;
+    }
+    .text-input:focus {
+      border-color: var(--border-focus);
+    }
+    
+    /* Choice Tag Grid */
+    .tag-choice-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    
+    .tag-choice {
+      cursor: pointer;
+      user-select: none;
+    }
+    .tag-choice input {
+      display: none;
+    }
+    .tag-choice span {
+      display: block;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: var(--transition-fast);
+    }
+    .tag-choice:hover span {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+    }
+    .tag-choice input:checked + span {
+      background: var(--accent);
+      color: #white;
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    
+    /* Dropdown autocomplete */
+    .autocomplete-container {
+      position: relative;
+    }
+    .autocomplete-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: #0f1527;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      margin-top: 0.25rem;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: var(--shadow-lg);
+      display: none;
+    }
+    .autocomplete-item {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      color: var(--text-secondary);
+    }
+    .autocomplete-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+    
+    .btn-reset-filters {
+      width: 100%;
+      background: rgba(239, 68, 68, 0.05);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      padding: 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-reset-filters:hover {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+    
+    /* --- Main Catalog Panel --- */
+    .catalog-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    /* Active Filters bar */
+    .active-chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-panel);
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-color);
+    }
+    .active-chips-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-right: 0.25rem;
+    }
+    .chip {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--text-primary);
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 500;
+    }
+    .chip-remove {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      line-height: 1;
+    }
+    .chip-remove:hover {
+      color: var(--danger);
+    }
+    
+    /* Toolbar (Count & Sort) */
+    .catalog-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: var(--bg-panel);
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-color);
+    }
+    
+    .results-count {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .results-count strong {
+      color: var(--text-primary);
+    }
+    
+    .sort-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sort-control label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .select-dropdown {
+      background: #0f1527;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 0.4rem 1.5rem 0.4rem 0.75rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 1rem;
+    }
+    .select-dropdown:focus {
+      border-color: var(--border-focus);
+    }
+    
+    /* Grid of Cards */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+    
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: var(--transition-normal);
+      position: relative;
+      overflow: hidden;
+    }
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: transparent;
+      transition: var(--transition-normal);
+    }
+    .module-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.3);
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+    .module-card:hover::before {
+      background: var(--accent-gradient);
+    }
+    
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+    
+    .badge {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+    
+    .badge-hs {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    .badge-ects {
+      background: var(--success-bg);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge-lang {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .badge-assess {
+      background: var(--warning-bg);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.35;
+      min-height: 2.7rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .card-title:hover {
+      color: var(--accent);
+    }
+    
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .meta-item svg {
+      width: 0.95rem;
+      height: 0.95rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .meta-item span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meta-item.meta-item-wrap {
+      align-items: flex-start;
+    }
+    .meta-item.meta-item-wrap svg {
+      margin-top: 0.2rem;
+    }
+    .meta-item.meta-item-wrap span {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+    
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 1rem;
+    }
+    
+    .btn {
+      flex: 1;
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-primary);
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: var(--transition-normal);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--text-secondary);
+    }
+    
+    .btn-select {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+    }
+    .btn-select:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    
+    .btn-select.selected {
+      background: var(--success-bg);
+      border-color: var(--success);
+      color: #34d399;
+    }
+    .btn-select.selected:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+      color: #f87171;
+    }
+    
+    /* Pagination */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      background: var(--bg-panel);
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-color);
+    }
+    
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    
+    .page-btn {
+      min-width: 2.25rem;
+      height: 2.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      transition: var(--transition-fast);
+    }
+    .page-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+    .page-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+    .page-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .page-info {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    /* --- Schedule & Selection Page --- */
+    .schedule-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    
+    @media (max-width: 1024px) {
+      .schedule-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Selection Panel */
+    .selection-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .stat-box-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .stat-box {
+      background: rgba(7, 10, 19, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 1.75rem;
+      font-weight: 800;
+      font-family: var(--font-header);
+      margin-top: 0.25rem;
+    }
+    .stat-val.ects-total {
+      color: var(--success);
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+    
+    /* Selected modules scroll-list */
+    .selected-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+    
+    .selected-item-card {
+      background: rgba(30, 41, 73, 0.2);
+      border: 1px solid var(--border-card);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .selected-item-card:hover {
+      border-color: rgba(99, 102, 241, 0.2);
+      background: rgba(30, 41, 73, 0.3);
+    }
+    .selected-item-info {
+      flex: 1;
+      overflow: hidden;
+    }
+    .selected-item-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+    .selected-item-title:hover {
+      color: var(--accent);
+    }
+    .selected-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-remove-item {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+    }
+    .btn-remove-item:hover {
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+    
+    /* Timetable Grid View */
+    .timetable-wrapper {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      overflow-x: auto;
+    }
+    
+    .timetable-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+    
+    /* Calendar Layout (Hours x Days) */
+    .calendar-container {
+      position: relative;
+      min-width: 768px; /* ensures scrollable on small screens */
+    }
+    
+    .calendar-grid {
+      display: grid;
+      /* Column widths: Time, Monday, Tuesday, ... Sunday (optional) */
+      grid-template-columns: 60px repeat(6, 1fr);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(7, 10, 19, 0.2);
+      border-radius: 0.5rem;
+      position: relative;
+    }
+    
+    .calendar-header-cell {
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.01);
+    }
+    .calendar-header-cell:last-child {
+      border-right: none;
+    }
+    
+    /* Hours row positioning */
+    .calendar-time-axis {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .calendar-hour-cell {
+      height: 60px; /* 1 hour is 60px */
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 0.25rem 0.5rem 0 0;
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      box-sizing: border-box;
+    }
+    
+    .calendar-columns-container {
+      position: relative;
+      grid-column: 2 / span 6; /* 6 day columns */
+      height: calc(14 * 60px); /* 14 hours total (e.g. 08:00 to 22:00) */
+    }
+    
+    /* Background grid lines */
+    .calendar-grid-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+    }
+    .calendar-grid-col-line {
+      flex: 1;
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+      height: 100%;
+    }
+    .calendar-grid-col-line:last-child {
+      border-right: none;
+    }
+    .calendar-grid-row-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .calendar-grid-row-line {
+      height: 60px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    /* Rendered course blocks */
+    .calendar-item {
+      position: absolute;
+      border-radius: 0.375rem;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.75rem;
+      line-height: 1.2;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      transition: var(--transition-fast);
+      box-sizing: border-box;
+      box-shadow: var(--shadow-sm);
+    }
+    .calendar-item:hover {
+      transform: scale(1.02);
+      z-index: 5;
+      box-shadow: var(--shadow-md);
+      background: rgba(99, 102, 241, 0.25);
+    }
+    
+    .calendar-item.has-collision {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #f87171;
+      animation: pulse-border 2s infinite alternate;
+    }
+    
+    @keyframes pulse-border {
+      0% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 4px rgba(239, 68, 68, 0.1); }
+      100% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+    }
+    
+    .calendar-item-title {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .calendar-item-time {
+      font-size: 0.6875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .calendar-item.has-collision .calendar-item-time {
+      color: #fca5a5;
+    }
+    .calendar-item-room {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      align-self: flex-end;
+    }
+    
+    /* Collision Warning Alert Banner */
+    .collision-banner {
+      background: var(--danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      color: #fca5a5;
+      font-size: 0.875rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      box-shadow: 0 0 15px var(--danger-glow);
+    }
+    
+    .collision-banner-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      color: var(--danger);
+      font-size: 0.95rem;
+    }
+    .collision-banner-header svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    
+    .collision-list {
+      list-style-type: none;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .collision-item {
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 0.375rem;
+      padding: 0.5rem 0.75rem;
+      border-left: 3px solid var(--danger);
+    }
+    .collision-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    
+    /* --- Comparison Tab View --- */
+    .comparison-wrapper {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      overflow-x: auto;
+    }
+    
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+      min-width: 600px;
+    }
+    
+    .comparison-table th, .comparison-table td {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      vertical-align: top;
+    }
+    
+    /* Row styling */
+    .comparison-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.01);
+    }
+    
+    .comparison-table th.prop-col {
+      width: 180px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    .comparison-table td.module-col {
+      min-width: 250px;
+      max-width: 350px;
+    }
+    
+    .comparison-header-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+    }
+    
+    .comparison-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .comparison-title:hover {
+      color: var(--accent);
+    }
+    
+    .btn-remove-compare {
+      position: absolute;
+      top: -0.25rem;
+      right: -0.25rem;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      cursor: pointer;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+      font-size: 0.75rem;
+    }
+    .btn-remove-compare:hover {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .compare-cell-content {
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      padding-right: 0.25rem;
+    }
+    
+    .comparison-empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .comparison-empty-state svg {
+      width: 4rem;
+      height: 4rem;
+      color: var(--text-muted);
+    }
+    
+    /* --- Details Modal --- */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 7, 13, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-normal);
+      padding: 1.5rem;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .modal-container {
+      background: var(--bg-surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.25rem;
+      width: 100%;
+      max-width: 800px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+      transform: translateY(20px);
+      transition: transform var(--transition-normal);
+    }
+    .modal-backdrop.open .modal-container {
+      transform: translateY(0);
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1.5rem;
+      background: rgba(255, 255, 255, 0.01);
+    }
+    
+    .modal-title-area {
+      flex: 1;
+    }
+    .modal-title-area h2 {
+      font-size: 1.35rem;
+      line-height: 1.3;
+      margin-bottom: 0.5rem;
+    }
+    
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      width: 2rem;
+      height: 2rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .modal-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+    
+    /* Toggle switch for DE/EN in Modal */
+    .lang-toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .lang-toggle-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-primary);
+      transition: .3s;
+      border-radius: 50%;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--accent);
+      border-color: var(--accent);
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+    
+    .modal-content {
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .modal-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+    .modal-meta-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .modal-meta-lbl {
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .modal-meta-val {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .description-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .description-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #a5b4fc;
+      border-left: 3px solid var(--accent);
+      padding-left: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .description-body {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      white-space: pre-wrap; /* Preserve newlines */
+      padding-left: 0.75rem;
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.01);
+    }
+    
+    /* --- Toast Notification --- */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--success);
+      color: var(--text-primary);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      z-index: 10000;
+      box-shadow: var(--shadow-lg), 0 0 15px rgba(16, 185, 129, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    /* --- Empty State Screen --- */
+    .catalog-empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--text-secondary);
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .catalog-empty-state svg {
+      width: 4.5rem;
+      height: 4.5rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-content">
+      <div class="logo-area">
+        <div class="logo-icon">F</div>
+        <div class="logo-text">
+          <h1>FHNW Modul-Explorer</h1>
+          <p id="header-subtitle">Live-Daten • FHNW Modulplaner</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <select id="semester-select" class="semester-select" title="Semester wählen"></select>
+
+        <button class="btn-share" id="btn-refresh" onclick="refreshData()" title="Daten neu von der FHNW-API laden">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Aktualisieren
+        </button>
+
+        <div class="selection-badge" onclick="navigateToTab('timetable')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>Meine Auswahl</span>
+          <span class="count" id="header-select-count">0</span>
+          <span class="ects-calc" id="header-ects-sum">0 ECTS</span>
+        </div>
+        
+        <button class="btn-share" id="btn-share" onclick="copyShareLink()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 10.742l4.885 2.666M9.682 9.47l4.885-2.666M9.682 8.47a3 3 0 11-5.714 0 3 3 0 015.714 0z" />
+          </svg>
+          Teilen
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Lade-Overlay (Live-Daten) -->
+  <div id="load-overlay" class="load-overlay" style="display:flex;">
+    <div class="load-card">
+      <div class="load-spinner"></div>
+      <div id="load-message" class="load-message">Lade Module …</div>
+      <div class="load-track"><div id="load-bar" class="load-bar"></div></div>
+      <p class="load-hint">Erstes Laden aller Hochschulen mit Details kann einige Minuten dauern. Danach kommen die Daten aus dem Cache.</p>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- Tab Navigation Buttons -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tab-btn-catalog" onclick="switchTab('catalog')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        Modul-Katalog
+        <span class="tab-badge" id="nav-count-all">0</span>
+      </button>
+      
+      <button class="tab-btn" id="tab-btn-timetable" onclick="switchTab('timetable')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Stundenplan & Auswahl
+        <span class="tab-badge" id="nav-count-selected">0</span>
+      </button>
+      
+      <button class="tab-btn" id="tab-btn-comparison" onclick="switchTab('comparison')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+        </svg>
+        Vergleichsansicht
+      </button>
+    </div>
+
+    <!-- TAB 1: MODUL-KATALOG -->
+    <div class="tab-pane active" id="pane-catalog">
+      <div class="catalog-layout">
+        
+        <!-- Sidebar Filters -->
+        <aside class="sidebar">
+          
+          <!-- Search Block -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Stichwortsuche</span>
+              <span class="filter-reset-link" id="reset-search" onclick="clearSearch()" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="search-wrapper">
+              <svg class="search-icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" class="search-input" id="search-box" placeholder="Titel, Dozierende, Inhalte..." onkeyup="handleSearchKeyUp(event)">
+              <button class="clear-search-btn" id="search-clear-btn" onclick="clearSearch()">✕</button>
+            </div>
+          </div>
+          
+          <!-- Hochschule Filter -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Hochschule</span>
+              <span class="filter-reset-link" id="reset-hs" onclick="resetSingleFilter('hs')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="tag-choice-grid" id="filter-hs-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          
+          <!-- Studiengang Autocomplete -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Studiengang</span>
+              <span class="filter-reset-link" id="reset-studyProgram" onclick="resetSingleFilter('studyProgram')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="autocomplete-container">
+              <input type="text" class="text-input" id="filter-study-program" placeholder="Studiengang suchen..." onfocus="showStudyProgramResults()" onkeyup="filterStudyPrograms(event)">
+              <div class="autocomplete-results" id="study-program-autocomplete-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+          
+          <!-- ECTS Slider/Inputs -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>ECTS Punkte</span>
+              <span class="filter-reset-link" id="reset-ects" onclick="resetSingleFilter('ects')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="input-row">
+              <div class="input-control">
+                <label for="filter-ects-min">Min ECTS</label>
+                <input type="number" class="text-input" id="filter-ects-min" placeholder="0" min="0" max="30" onchange="applyFilters()">
+              </div>
+              <div class="input-control">
+                <label for="filter-ects-max">Max ECTS</label>
+                <input type="number" class="text-input" id="filter-ects-max" placeholder="30" min="0" max="30" onchange="applyFilters()">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Wochentag -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Wochentag</span>
+              <span class="filter-reset-link" id="reset-days" onclick="resetSingleFilter('days')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="tag-choice-grid" id="filter-day-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          
+          <!-- Uhrzeit-Fenster -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Uhrzeit-Fenster</span>
+              <span class="filter-reset-link" id="reset-time" onclick="resetSingleFilter('time')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="input-row">
+              <div class="input-control">
+                <label for="filter-time-from">Ab (HH:MM)</label>
+                <input type="time" class="text-input" id="filter-time-from" onchange="applyFilters()">
+              </div>
+              <div class="input-control">
+                <label for="filter-time-to">Bis (HH:MM)</label>
+                <input type="time" class="text-input" id="filter-time-to" onchange="applyFilters()">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Datum-Fenster (Zeitraum) -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Zeitraum</span>
+              <span class="filter-reset-link" id="reset-dates" onclick="resetSingleFilter('dates')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="input-control">
+              <label for="filter-date-start">Startet ab Datum</label>
+              <input type="date" class="text-input" id="filter-date-start" onchange="applyFilters()">
+            </div>
+            <div class="input-control" style="margin-top: 0.5rem;">
+              <label for="filter-date-end">Endet bis Datum</label>
+              <input type="date" class="text-input" id="filter-date-end" onchange="applyFilters()">
+            </div>
+          </div>
+          
+          <!-- Unterrichtssprache (Derived) -->
+          <div class="filter-group">
+            <div class="filter-section-title">
+              <span>Unterrichtssprache</span>
+              <span class="filter-reset-link" id="reset-lang" onclick="resetSingleFilter('lang')" style="display: none;">Zurücksetzen</span>
+            </div>
+            <div class="tag-choice-grid" id="filter-lang-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+          
+          <button class="btn-reset-filters" onclick="resetAllFilters()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Filter zurücksetzen
+          </button>
+          
+        </aside>
+        
+        <!-- Main Catalog Panel -->
+        <section class="catalog-main">
+          
+          <!-- Active filter chips -->
+          <div class="active-chips-container" id="active-chips-bar" style="display: none;">
+            <span class="active-chips-label">Aktive Filter:</span>
+            <div class="tag-choice-grid" id="chips-list"></div>
+          </div>
+          
+          <!-- Toolbar -->
+          <div class="catalog-toolbar">
+            <div class="results-count" id="results-count-text">
+              Lade Module...
+            </div>
+            
+            <div class="sort-control">
+              <label for="sort-by">Sortieren nach:</label>
+              <select class="select-dropdown" id="sort-by" onchange="handleSortChange()">
+                <option value="title_asc">Titel (A-Z)</option>
+                <option value="title_desc">Titel (Z-A)</option>
+                <option value="ects_desc">ECTS (Hoch-Tief)</option>
+                <option value="ects_asc">ECTS (Tief-Hoch)</option>
+                <option value="date_asc">Erstes Datum (Chronologisch)</option>
+                <option value="hs_asc">Hochschule (A-Z)</option>
+                <option value="score_desc" id="sort-score-option" style="display: none;">Relevanz (Suche)</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Grid of module cards -->
+          <div class="module-grid" id="catalog-grid">
+            <!-- Cards populated dynamically -->
+          </div>
+          
+          <!-- Pagination -->
+          <div class="pagination-bar" id="pagination-panel">
+            <div class="page-info" id="pagination-info">Seite 1 von 1</div>
+            <div class="pagination-controls" id="pagination-buttons">
+              <!-- Dynamically populated -->
+            </div>
+            <div class="sort-control">
+              <label for="items-per-page">Pro Seite:</label>
+              <select class="select-dropdown" id="items-per-page" onchange="handleItemsPerPageChange()">
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+          
+        </section>
+        
+      </div>
+    </div>
+
+    <!-- TAB 2: STUNDENPLAN & AUSWAHL -->
+    <div class="tab-pane" id="pane-timetable">
+      <div class="schedule-layout">
+        
+        <!-- Selection Sidebar Summary -->
+        <div class="selection-panel">
+          <h3>Ausgewählte Module</h3>
+          
+          <div class="stat-box-grid">
+            <div class="stat-box">
+              <div class="stat-label">Module</div>
+              <div class="stat-val" id="summary-module-count">0</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">ECTS Gesamt</div>
+              <div class="stat-val ects-total" id="summary-ects-total">0</div>
+            </div>
+          </div>
+          
+          <!-- Collisions alert list -->
+          <div class="collision-banner" id="collision-alert-banner" style="display: none;">
+            <div class="collision-banner-header">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+              <span>Stundenplan-Kollisionen!</span>
+            </div>
+            <ul class="collision-list" id="collision-list-ul">
+              <!-- Populated dynamically -->
+            </ul>
+          </div>
+          
+          <div class="selected-list" id="selected-modules-list-container">
+            <!-- Populated dynamically -->
+          </div>
+          
+          <!-- Code-sharing area -->
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="filter-section-title" style="margin-bottom: 0;">Auswahl per Codes teilen</div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary);">Kopiere diese Codes zum Teilen oder füge Codes deiner Mitstudierenden hier ein:</p>
+            <input type="text" class="text-input" id="share-codes-input" placeholder="Keine Module ausgewählt" style="font-family: monospace; font-size: 0.8125rem;">
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary" onclick="copyShareCodes()" style="flex: 1;">Kopieren</button>
+              <button class="btn btn-select" onclick="importShareCodes()" style="flex: 1;">Importieren</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Timetable Grid -->
+        <div class="timetable-wrapper">
+          <div class="timetable-header">
+            <h3>Visualisierter Wochenplan</h3>
+            <p style="font-size: 0.8125rem; color: var(--text-secondary);">Montag bis Samstag, Module werden gemäss Wochentag & Uhrzeit platziert</p>
+          </div>
+          
+          <div class="calendar-container">
+            <div class="calendar-grid" id="calendar-grid-main">
+              <!-- Dynamically populated by JS (headers + time axis + columns container) -->
+            </div>
+          </div>
+          
+          <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; color: var(--accent);">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span><strong>Hinweis zur Darstellung:</strong> Wenn sich Kurse im Kalender eine Spalte teilen, aber keine rote Kollisionswarnung angezeigt wird, finden sie an unterschiedlichen Semesterdaten statt (siehe Datumsangaben im Block).</span>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- TAB 3: VERGLEICHSANSICHT -->
+    <div class="tab-pane" id="pane-comparison">
+      <div class="comparison-wrapper">
+        <div id="comparison-view-container">
+          <!-- Populated dynamically (Comparison table or empty state) -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Module Detail Modal -->
+  <div class="modal-backdrop" id="detail-modal" onclick="closeDetailsModal(event)">
+    <div class="modal-container" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <div class="card-badges" id="modal-badges" style="margin-bottom: 0.5rem;"></div>
+          <h2 id="modal-title">Titel des Moduls</h2>
+          <div class="selected-item-meta" id="modal-subtitle">Hochschule • ECTS</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.75rem;">
+          <button class="modal-close-btn" onclick="closeDetailsModal(null)">✕</button>
+          <div class="lang-toggle-container">
+            <span class="lang-toggle-label">EN</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="modal-lang-checkbox" onchange="toggleModalLanguage()">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="lang-toggle-label">DE</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-content" id="modal-content-body">
+        <!-- Main details grid -->
+        <div class="modal-meta-grid">
+          <div class="modal-meta-block">
+            <span class="modal-meta-lbl">Dozierende</span>
+            <span class="modal-meta-val" id="modal-meta-teachers">-</span>
+          </div>
+          <div class="modal-meta-block">
+            <span class="modal-meta-lbl">Räume</span>
+            <span class="modal-meta-val" id="modal-meta-rooms">-</span>
+          </div>
+          <div class="modal-meta-block">
+            <span class="modal-meta-lbl">Wochentag / Zeit</span>
+            <span class="modal-meta-val" id="modal-meta-time">-</span>
+          </div>
+          <div class="modal-meta-block">
+            <span class="modal-meta-lbl">Zeitraum</span>
+            <span class="modal-meta-val" id="modal-meta-dates">-</span>
+          </div>
+        </div>
+        
+        <!-- Long descriptions -->
+        <div class="description-section" id="section-key-idea">
+          <h4 class="description-title">Schlüsselidee (Key Idea)</h4>
+          <p class="description-body" id="body-key-idea"></p>
+        </div>
+        
+        <div class="description-section" id="section-content">
+          <h4 class="description-title">Inhalt (Course Content)</h4>
+          <p class="description-body" id="body-content"></p>
+        </div>
+        
+        <div class="description-section" id="section-competences">
+          <h4 class="description-title">Kompetenzen (Competences)</h4>
+          <p class="description-body" id="body-competences"></p>
+        </div>
+        
+        <div class="description-section" id="section-methods">
+          <h4 class="description-title">Lernmethode (Learning & Study Method)</h4>
+          <p class="description-body" id="body-methods"></p>
+        </div>
+        
+        <div class="description-section" id="section-literature">
+          <h4 class="description-title">Literatur (Literature)</h4>
+          <p class="description-body" id="body-literature"></p>
+        </div>
+        
+        <div class="description-section" id="section-requirements">
+          <h4 class="description-title">Voraussetzungen (Requirements)</h4>
+          <p class="description-body" id="body-requirements"></p>
+        </div>
+        
+        <div class="description-section" id="section-performance-records">
+          <h4 class="description-title">Leistungsnachweis (Performance Record)</h4>
+          <p class="description-body" id="body-performance-records"></p>
+        </div>
+
+        <div class="description-section" id="section-assessment">
+          <h4 class="description-title">Leistungsbewertung (Assessment)</h4>
+          <p class="description-body" id="body-assessment"></p>
+        </div>
+        
+        <div class="description-section" id="section-attendance">
+          <h4 class="description-title">Präsenzpflicht (Compulsory Attendance)</h4>
+          <p class="description-body" id="body-attendance"></p>
+        </div>
+        
+        <div class="description-section" id="section-remarks">
+          <h4 class="description-title">Bemerkungen (Remarks)</h4>
+          <p class="description-body" id="body-remarks"></p>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" style="max-width: 150px;" id="modal-url-btn" onclick="openOfficialUrl()">
+          FHNW Modulseite ↗
+        </button>
+        <button class="btn btn-select" style="max-width: 180px;" id="modal-select-btn" onclick="toggleModalSelection()">
+          Auswählen
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast-message">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span id="toast-text">Aktion erfolgreich</span>
+  </div>
+
+  <!-- Core Javascript Logic -->
+  <script>
+    /* Live-Daten vom Backend (statt eingebackenem JSON) */
+    let MODULES_DATA = [];
+    
+    // Day conversion mapping
+    const DAYS_DE = {
+      'Monday': 'Montag',
+      'Tuesday': 'Dienstag',
+      'Wednesday': 'Mittwoch',
+      'Thursday': 'Donnerstag',
+      'Friday': 'Freitag',
+      'Saturday': 'Samstag',
+      'Sunday': 'Sonntag',
+      '': 'Unbekannt'
+    };
+    
+    const DAYS_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    /* --- State Management --- */
+    let modulesList = [];
+    let filteredList = [];
+    let selectedModuleIds = new Set();
+    
+    // Active Filters
+    let filters = {
+      search: '',
+      hs: new Set(),
+      studyProgram: '',
+      ectsMin: null,
+      ectsMax: null,
+      days: new Set(),
+      timeFrom: null,
+      timeTo: null,
+      dateStart: null,
+      dateEnd: null,
+      language: new Set()
+    };
+    
+    // Pagination & Sort
+    let currentPage = 1;
+    let itemsPerPage = 50;
+    let sortBy = 'title_asc';
+    
+    // Active tab
+    let activeTab = 'catalog';
+    
+    // Modal state
+    let activeModalModule = null;
+    let modalLanguage = 'DE'; // 'DE' or 'EN'
+    
+    // Autocomplete study programs list
+    let allStudyPrograms = [];
+    let studyProgToHs = {};
+    
+    /* --- Initializer --- */
+    // Baut alle Ansichten aus den aktuell geladenen MODULES_DATA auf.
+    function buildDashboard() {
+      initData();
+      loadStateFromUrlAndStorage();
+      initFilterOptions();
+      applyFilters();
+      // renderTimetable() erzeugt #calendar-time-axis / #calendar-row-lines,
+      // die initTimetableGridLines() anschliessend füllt -> Reihenfolge wichtig.
+      renderTimetable();
+      initTimetableGridLines();
+      renderSelectedList();
+    }
+
+    // ---- Live-Daten-Anbindung ans Backend ----
+    let currentSemester = null;
+
+    function showOverlay(show, message, pct) {
+      const ov = document.getElementById('load-overlay');
+      if (!ov) return;
+      ov.style.display = show ? 'flex' : 'none';
+      if (message !== undefined) {
+        const m = document.getElementById('load-message');
+        if (m) m.textContent = message;
+      }
+      const bar = document.getElementById('load-bar');
+      if (bar) bar.style.width = (pct === undefined || pct === null) ? '100%' : (pct + '%');
+    }
+
+    async function pollStatusUntilReady(semester) {
+      while (true) {
+        await new Promise(r => setTimeout(r, 1500));
+        let st;
+        try {
+          st = await (await fetch('/api/status?semester=' + encodeURIComponent(semester))).json();
+        } catch (e) { continue; }
+        const pct = (st.total && st.total > 0) ? Math.round((st.done / st.total) * 100) : null;
+        const phaseLabel = st.phase === 'details' ? 'Details laden' : (st.phase === 'search' ? 'Module suchen' : '');
+        showOverlay(true, (phaseLabel ? phaseLabel + ' — ' : '') + (st.message || 'Lade …'), pct);
+        if (st.state === 'ready') return true;
+        if (st.state === 'error') { showOverlay(true, st.message || 'Fehler beim Laden', null); return false; }
+      }
+    }
+
+    async function loadSemester(semester) {
+      currentSemester = semester;
+      showOverlay(true, 'Lade Module …', null);
+      try {
+        let resp = await fetch('/api/modules?semester=' + encodeURIComponent(semester));
+        if (resp.status === 202) {
+          const ok = await pollStatusUntilReady(semester);
+          if (!ok) return;  // Fehler-Overlay bleibt sichtbar
+          resp = await fetch('/api/modules?semester=' + encodeURIComponent(semester));
+        }
+        if (!resp.ok) { showOverlay(true, 'Konnte Daten nicht laden.', null); return; }
+        MODULES_DATA = await resp.json();
+        buildDashboard();
+        showOverlay(false);
+      } catch (e) {
+        console.error('loadSemester error', e);
+        showOverlay(true, 'Fehler beim Aufbau: ' + e, null);
+      }
+    }
+
+    async function initSemesterSelector() {
+      const sel = document.getElementById('semester-select');
+      let semesters = [];
+      try {
+        semesters = await (await fetch('/api/semesters')).json();
+      } catch (e) { semesters = []; }
+      sel.innerHTML = '';
+      semesters.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.value;
+        opt.textContent = s.label;
+        sel.appendChild(opt);
+      });
+      // URL-Parameter ?semester= berücksichtigen, sonst erstes Semester
+      const urlSem = new URLSearchParams(location.search).get('semester');
+      const chosen = (urlSem && semesters.some(s => s.value === urlSem)) ? urlSem
+                    : (semesters[0] && semesters[0].value);
+      if (chosen) {
+        sel.value = chosen;
+        const sub = document.getElementById('header-subtitle');
+        if (sub) sub.textContent = sel.options[sel.selectedIndex].textContent;
+        await loadSemester(chosen);
+      } else {
+        showOverlay(true, 'Keine Semester verfügbar (Internet/API prüfen).', null);
+      }
+
+      sel.addEventListener('change', async () => {
+        const sub = document.getElementById('header-subtitle');
+        if (sub) sub.textContent = sel.options[sel.selectedIndex].textContent;
+        await loadSemester(sel.value);
+      });
+    }
+
+    async function refreshData() {
+      if (!currentSemester) return;
+      showOverlay(true, 'Aktualisiere Daten …', null);
+      await fetch('/api/refresh?semester=' + encodeURIComponent(currentSemester), { method: 'POST' });
+      const ok = await pollStatusUntilReady(currentSemester);
+      if (!ok) return;
+      const resp = await fetch('/api/modules?semester=' + encodeURIComponent(currentSemester));
+      MODULES_DATA = await resp.json();
+      buildDashboard();
+      showOverlay(false);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSemesterSelector();
+    });
+    
+    function initData() {
+      // 1. Process modules list
+      modulesList = MODULES_DATA.map(m => {
+        // Derive clean ECTS as number
+        const ectsNum = m.ects ? parseInt(m.ects, 10) : 0;
+        
+        // Dynamic language detection
+        let detectedLang = 'Deutsch';
+        const hasENContent = (m.courseContentEN && m.courseContentEN.trim().length > 0) ||
+                             (m.titleEN && m.titleEN.trim() !== m.title.trim() && m.titleEN.trim() !== "");
+        if (hasENContent) {
+          detectedLang = 'Bilingual';
+          // Check if it's primarily English (if DE content is empty but EN is populated)
+          const hasDEContent = (m.courseContent && m.courseContent.trim().length > 0) || 
+                               (m.title && m.title.trim().length > 0);
+          if (hasENContent && !hasDEContent) {
+            detectedLang = 'Englisch';
+          }
+        }
+        
+        // Parse time window
+        const timeStartMin = parseTimeToMinutes(m.lektionTimeFrom);
+        const timeEndMin = parseTimeToMinutes(m.lektionTimeTo);
+        
+        // Splitted and weekday-filtered dates
+        const rawDates = m.lektionDates 
+          ? m.lektionDates.split(',').map(d => d.trim()).filter(d => d) 
+          : [];
+        
+        const WEEKDAY_INDEX = {
+          'Sunday': 0,
+          'Monday': 1,
+          'Tuesday': 2,
+          'Wednesday': 3,
+          'Thursday': 4,
+          'Friday': 5,
+          'Saturday': 6
+        };
+        
+        const datesArray = [];
+        rawDates.forEach(dateStr => {
+          const parsed = parseGermanDate(dateStr);
+          if (parsed) {
+            if (m.lektionDayOfWeek && WEEKDAY_INDEX[m.lektionDayOfWeek] !== undefined) {
+              if (parsed.getDay() === WEEKDAY_INDEX[m.lektionDayOfWeek]) {
+                datesArray.push(dateStr);
+              }
+            } else {
+              datesArray.push(dateStr);
+            }
+          }
+        });
+        
+        // Parse all valid dates to Date objects to get true chronological range
+        const parsedDates = datesArray.map(dStr => parseGermanDate(dStr)).filter(Boolean);
+        
+        let trueFirstDate = m.lektionFirstDate;
+        let trueLastDate = m.lektionLastDate;
+        let parsedFirstDate = parseGermanDate(m.lektionFirstDate);
+        let parsedLastDate = parseGermanDate(m.lektionLastDate);
+        
+        if (parsedDates.length > 0) {
+          parsedDates.sort((a, b) => a - b);
+          parsedFirstDate = parsedDates[0];
+          parsedLastDate = parsedDates[parsedDates.length - 1];
+          trueFirstDate = formatInputDate(parsedFirstDate);
+          trueLastDate = formatInputDate(parsedLastDate);
+        }
+          
+        return {
+          ...m,
+          Hochschule: m.Hochschule || m.hochschule || '',
+          lektionFirstDate: trueFirstDate,
+          lektionLastDate: trueLastDate,
+          ectsNum,
+          detectedLang,
+          timeStartMin,
+          timeEndMin,
+          parsedFirstDate,
+          parsedLastDate,
+          datesArray,
+          searchScore: 0
+        };
+      });
+      
+      // Get unique study programs and map them to their Hochschulen
+      const studyProgSet = new Set();
+      studyProgToHs = {};
+      modulesList.forEach(m => {
+        if (m.studyPrograms) {
+          m.studyPrograms.split(',').forEach(p => {
+            const clean = p.trim();
+            if (clean) {
+              studyProgSet.add(clean);
+              const hsName = m.Hochschule || m.hochschule;
+              if (hsName) {
+                if (!studyProgToHs[clean]) {
+                  studyProgToHs[clean] = new Set();
+                }
+                studyProgToHs[clean].add(hsName);
+              }
+            }
+          });
+        }
+      });
+      allStudyPrograms = Array.from(studyProgSet).sort();
+    }
+    
+    function initFilterOptions() {
+      // Populate HS tags
+      const hsSet = new Set();
+      modulesList.forEach(m => {
+        if (m.Hochschule) hsSet.add(m.Hochschule);
+      });
+      
+      const hsContainer = document.getElementById('filter-hs-container');
+      hsContainer.innerHTML = '';
+      Array.from(hsSet).sort().forEach(hs => {
+        hsContainer.appendChild(createTagChoice('hs', hs, hs));
+      });
+      
+      // Populate Day tags (only days present in data)
+      const daySet = new Set();
+      modulesList.forEach(m => {
+        if (m.lektionDayOfWeek) daySet.add(m.lektionDayOfWeek);
+      });
+      
+      const dayContainer = document.getElementById('filter-day-container');
+      dayContainer.innerHTML = '';
+      DAYS_ORDER.forEach(day => {
+        if (daySet.has(day)) {
+          dayContainer.appendChild(createTagChoice('day', day, DAYS_DE[day] || day));
+        }
+      });
+      
+      // Populate Language tags
+      const langContainer = document.getElementById('filter-lang-container');
+      langContainer.innerHTML = '';
+      ['Deutsch', 'Englisch', 'Bilingual'].forEach(lang => {
+        langContainer.appendChild(createTagChoice('lang', lang, lang));
+      });
+    }
+    
+    function createTagChoice(type, value, label) {
+      const labelEl = document.createElement('label');
+      labelEl.className = 'tag-choice';
+      
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = `${type}-${value}`;
+      input.value = value;
+      input.onchange = () => toggleFilterSet(type, value);
+      
+      const span = document.createElement('span');
+      span.textContent = label;
+      
+      labelEl.appendChild(input);
+      labelEl.appendChild(span);
+      return labelEl;
+    }
+    
+    function toggleFilterSet(type, value) {
+      const set = type === 'hs' ? filters.hs : (type === 'day' ? filters.days : filters.language);
+      if (set.has(value)) {
+        set.delete(value);
+      } else {
+        set.add(value);
+      }
+      applyFilters();
+    }
+    
+    /* --- Filtering Logic --- */
+    function applyFilters() {
+      const searchBox = document.getElementById('search-box');
+      filters.search = searchBox.value.trim();
+      
+      const ectsMinVal = document.getElementById('filter-ects-min').value;
+      filters.ectsMin = ectsMinVal !== "" ? parseInt(ectsMinVal, 10) : null;
+      const ectsMaxVal = document.getElementById('filter-ects-max').value;
+      filters.ectsMax = ectsMaxVal !== "" ? parseInt(ectsMaxVal, 10) : null;
+      
+      const timeFromVal = document.getElementById('filter-time-from').value;
+      filters.timeFrom = timeFromVal ? parseTimeToMinutes(timeFromVal) : null;
+      const timeToVal = document.getElementById('filter-time-to').value;
+      filters.timeTo = timeToVal ? parseTimeToMinutes(timeToVal) : null;
+      
+      const dateStartVal = document.getElementById('filter-date-start').value;
+      filters.dateStart = dateStartVal ? new Date(dateStartVal) : null;
+      const dateEndVal = document.getElementById('filter-date-end').value;
+      filters.dateEnd = dateEndVal ? new Date(dateEndVal) : null;
+      
+      // Study program text
+      filters.studyProgram = document.getElementById('filter-study-program').value.trim();
+      
+      // Filter list
+      filteredList = modulesList.filter(m => {
+        // 1. Search Query
+        if (filters.search) {
+          const score = calculateSearchScore(m, filters.search);
+          if (score === 0) return false;
+          m.searchScore = score;
+        } else {
+          m.searchScore = 0;
+        }
+        
+        // 2. Hochschule
+        if (filters.hs.size > 0 && !filters.hs.has(m.Hochschule)) return false;
+        
+        // 3. Wochentag
+        if (filters.days.size > 0 && !filters.days.has(m.lektionDayOfWeek)) return false;
+        
+        // 4. ECTS Range
+        if (filters.ectsMin !== null && m.ectsNum < filters.ectsMin) return false;
+        if (filters.ectsMax !== null && m.ectsNum > filters.ectsMax) return false;
+        
+        // 5. Time Window
+        if (filters.timeFrom !== null || filters.timeTo !== null) {
+          if (m.timeStartMin === null || m.timeEndMin === null) return false; // has no time
+          if (filters.timeFrom !== null && m.timeStartMin < filters.timeFrom) return false;
+          if (filters.timeTo !== null && m.timeEndMin > filters.timeTo) return false;
+        }
+        
+        // 6. Date Range (Course starts on/after dateStart and ends on/before dateEnd)
+        if (filters.dateStart !== null || filters.dateEnd !== null) {
+          if (!m.parsedFirstDate || !m.parsedLastDate) return false;
+          if (filters.dateStart !== null && m.parsedFirstDate < filters.dateStart) return false;
+          if (filters.dateEnd !== null && m.parsedLastDate > filters.dateEnd) return false;
+        }
+        
+        // 7. Language
+        if (filters.language.size > 0 && !filters.language.has(m.detectedLang)) return false;
+        
+        // 8. Study program
+        if (filters.studyProgram) {
+          if (!m.studyPrograms) return false;
+          const cleanProgs = m.studyPrograms.toLowerCase();
+          if (!cleanProgs.includes(filters.studyProgram.toLowerCase())) return false;
+        }
+        
+        return true;
+      });
+      
+      // Reset page
+      currentPage = 1;
+      
+      // Sort and Render
+      sortAndRenderCatalog();
+      renderActiveChips();
+      updateFilterResetLinks();
+      
+      // Update counters
+      document.getElementById('nav-count-all').textContent = filteredList.length;
+      document.getElementById('results-count-text').innerHTML = `Es wurden <strong>${filteredList.length}</strong> Module gefunden.`;
+    }
+    
+    function updateFilterResetLinks() {
+      document.getElementById('reset-search').style.display = filters.search ? 'inline' : 'none';
+      document.getElementById('reset-hs').style.display = filters.hs.size > 0 ? 'inline' : 'none';
+      document.getElementById('reset-studyProgram').style.display = filters.studyProgram ? 'inline' : 'none';
+      document.getElementById('reset-ects').style.display = (filters.ectsMin !== null || filters.ectsMax !== null) ? 'inline' : 'none';
+      document.getElementById('reset-days').style.display = filters.days.size > 0 ? 'inline' : 'none';
+      document.getElementById('reset-time').style.display = (filters.timeFrom !== null || filters.timeTo !== null) ? 'inline' : 'none';
+      document.getElementById('reset-dates').style.display = (filters.dateStart !== null || filters.dateEnd !== null) ? 'inline' : 'none';
+      document.getElementById('reset-lang').style.display = filters.language.size > 0 ? 'inline' : 'none';
+    }
+    
+    function resetSingleFilter(type) {
+      if (type === 'hs') {
+        filters.hs.clear();
+        document.querySelectorAll('#filter-hs-container input').forEach(input => input.checked = false);
+      } else if (type === 'studyProgram') {
+        document.getElementById('filter-study-program').value = '';
+      } else if (type === 'ects') {
+        document.getElementById('filter-ects-min').value = '';
+        document.getElementById('filter-ects-max').value = '';
+      } else if (type === 'days') {
+        filters.days.clear();
+        document.querySelectorAll('#filter-day-container input').forEach(input => input.checked = false);
+      } else if (type === 'time') {
+        document.getElementById('filter-time-from').value = '';
+        document.getElementById('filter-time-to').value = '';
+      } else if (type === 'dates') {
+        document.getElementById('filter-date-start').value = '';
+        document.getElementById('filter-date-end').value = '';
+      } else if (type === 'lang') {
+        filters.language.clear();
+        document.querySelectorAll('#filter-lang-container input').forEach(input => input.checked = false);
+      }
+      
+      applyFilters();
+    }
+    
+    function resetAllFilters() {
+      document.getElementById('search-box').value = '';
+      document.getElementById('search-clear-btn').style.display = 'none';
+      document.getElementById('filter-ects-min').value = '';
+      document.getElementById('filter-ects-max').value = '';
+      document.getElementById('filter-time-from').value = '';
+      document.getElementById('filter-time-to').value = '';
+      document.getElementById('filter-date-start').value = '';
+      document.getElementById('filter-date-end').value = '';
+      document.getElementById('filter-study-program').value = '';
+      
+      filters.hs.clear();
+      filters.days.clear();
+      filters.language.clear();
+      filters.studyProgram = '';
+      
+      // Uncheck checkboxes
+      document.querySelectorAll('.tag-choice input').forEach(input => input.checked = false);
+      
+      applyFilters();
+    }
+    
+    /* --- Search Engine & Accents Handling --- */
+    function normalizeString(str) {
+      return (str || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    }
+    
+    function matchWholeWord(target, query) {
+      if (!target) return false;
+      const escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp('(?:^|[^a-z0-9])' + escaped + '(?:$|[^a-z0-9])', 'i');
+      return regex.test(target);
+    }
+    
+    function calculateSearchScore(module, query) {
+      const q = normalizeString(query);
+      if (!q) return 0;
+      
+      const isShort = q.length <= 2;
+      
+      const matchText = (target) => {
+        if (!target) return false;
+        const norm = normalizeString(target);
+        if (isShort) {
+          return matchWholeWord(norm, q);
+        } else {
+          return norm.includes(q);
+        }
+      };
+      
+      let score = 0;
+      
+      // Modul ID Match (highest priority)
+      const idNormalized = normalizeString(module.planSemesterModulId);
+      if (idNormalized === q) {
+        score += 120;
+      } else if (idNormalized.includes(q)) {
+        score += 80;
+      }
+      
+      const titleNormalized = normalizeString(module.title);
+      const titleENNormalized = normalizeString(module.titleEN);
+      
+      if (titleNormalized === q || titleENNormalized === q) {
+        score += 100;
+      } else if (!isShort && (titleNormalized.startsWith(q) || titleENNormalized.startsWith(q))) {
+        score += 50;
+      } else if (matchText(module.title) || matchText(module.titleEN)) {
+        score += 20;
+      }
+      
+      const bodyFields = [
+        module.courseContent, module.courseContentEN,
+        module.keyIdea, module.keyIdeaEN,
+        module.competences, module.competencesEN,
+        module.learningStudyMethod, module.learningStudyMethodEN,
+        module.literature, module.literatureEN,
+        module.requirements, module.requirementsEN,
+        module.remarks, module.remarksEN,
+        module.assessment, module.assessmentEN,
+        module.teachers, module.detailedLecturers,
+        module.performanceRecords
+      ];
+      
+      bodyFields.forEach(field => {
+        if (field && matchText(field)) {
+          score += 2;
+        }
+      });
+      
+      return score;
+    }
+    
+    function handleSearchKeyUp(event) {
+      const searchVal = event.target.value.trim();
+      const clearBtn = document.getElementById('search-clear-btn');
+      clearBtn.style.display = searchVal ? 'block' : 'none';
+      
+      const scoreOption = document.getElementById('sort-score-option');
+      if (searchVal) {
+        scoreOption.style.display = 'block';
+        if (sortBy !== 'score_desc' && event.key === 'Enter') {
+          sortBy = 'score_desc';
+          document.getElementById('sort-by').value = 'score_desc';
+        }
+      } else {
+        scoreOption.style.display = 'none';
+        if (sortBy === 'score_desc') {
+          sortBy = 'title_asc';
+          document.getElementById('sort-by').value = 'title_asc';
+        }
+      }
+      
+      applyFilters();
+    }
+    
+    function clearSearch() {
+      document.getElementById('search-box').value = '';
+      document.getElementById('search-clear-btn').style.display = 'none';
+      document.getElementById('sort-score-option').style.display = 'none';
+      if (sortBy === 'score_desc') {
+        sortBy = 'title_asc';
+        document.getElementById('sort-by').value = 'title_asc';
+      }
+      applyFilters();
+    }
+    
+    /* --- Sort & Rendering --- */
+    function handleSortChange() {
+      sortBy = document.getElementById('sort-by').value;
+      sortAndRenderCatalog();
+    }
+    
+    function sortAndRenderCatalog() {
+      // Sort logic
+      filteredList.sort((a, b) => {
+        if (sortBy === 'score_desc') {
+          return b.searchScore - a.searchScore;
+        }
+        if (sortBy === 'title_asc') {
+          return a.title.localeCompare(b.title);
+        }
+        if (sortBy === 'title_desc') {
+          return b.title.localeCompare(a.title);
+        }
+        if (sortBy === 'ects_desc') {
+          return b.ectsNum - a.ectsNum;
+        }
+        if (sortBy === 'ects_asc') {
+          return a.ectsNum - b.ectsNum;
+        }
+        if (sortBy === 'date_asc') {
+          const dateA = a.parsedFirstDate || new Date(2999, 12, 31);
+          const dateB = b.parsedFirstDate || new Date(2999, 12, 31);
+          return dateA - dateB;
+        }
+        if (sortBy === 'hs_asc') {
+          return a.Hochschule.localeCompare(b.Hochschule);
+        }
+        return 0;
+      });
+      
+      renderCatalog();
+    }
+    
+    function renderCatalog() {
+      const grid = document.getElementById('catalog-grid');
+      grid.innerHTML = '';
+      
+      if (filteredList.length === 0) {
+        grid.appendChild(createEmptyState());
+        document.getElementById('pagination-panel').style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('pagination-panel').style.display = 'flex';
+      
+      // Calculate pagination bounds
+      const totalPages = Math.ceil(filteredList.length / itemsPerPage);
+      if (currentPage > totalPages) currentPage = totalPages || 1;
+      
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = Math.min(startIdx + itemsPerPage, filteredList.length);
+      
+      const pageSlice = filteredList.slice(startIdx, endIdx);
+      
+      pageSlice.forEach(module => {
+        grid.appendChild(createModuleCard(module));
+      });
+      
+      // Render pagination controls
+      document.getElementById('pagination-info').textContent = `Seite ${currentPage} von ${totalPages}`;
+      
+      const btnsContainer = document.getElementById('pagination-buttons');
+      btnsContainer.innerHTML = '';
+      
+      // Prev
+      const btnPrev = document.createElement('button');
+      btnPrev.className = 'page-btn';
+      btnPrev.disabled = currentPage === 1;
+      btnPrev.textContent = '◀';
+      btnPrev.onclick = () => { currentPage--; sortAndRenderCatalog(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+      btnsContainer.appendChild(btnPrev);
+      
+      // Helper to add button
+      const addPageButton = (page) => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${page === currentPage ? 'active' : ''}`;
+        btn.textContent = page;
+        btn.onclick = () => { currentPage = page; sortAndRenderCatalog(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+        btnsContainer.appendChild(btn);
+      };
+      
+      // Clean pages render (up to 5 buttons)
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+      }
+      
+      if (startPage > 1) {
+        addPageButton(1);
+        if (startPage > 2) {
+          const dots = document.createElement('span');
+          dots.textContent = '...';
+          dots.style.margin = '0 0.25rem';
+          btnsContainer.appendChild(dots);
+        }
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        addPageButton(i);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const dots = document.createElement('span');
+          dots.textContent = '...';
+          dots.style.margin = '0 0.25rem';
+          btnsContainer.appendChild(dots);
+        }
+        addPageButton(totalPages);
+      }
+      
+      // Next
+      const btnNext = document.createElement('button');
+      btnNext.className = 'page-btn';
+      btnNext.disabled = currentPage === totalPages;
+      btnNext.textContent = '▶';
+      btnNext.onclick = () => { currentPage++; sortAndRenderCatalog(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+      btnsContainer.appendChild(btnNext);
+    }
+    
+    function createModuleCard(m) {
+      const card = document.createElement('article');
+      card.className = 'module-card';
+      
+      // Badges
+      const badgeContainer = document.createElement('div');
+      badgeContainer.className = 'card-badges';
+      
+      const hsBadge = document.createElement('span');
+      hsBadge.className = 'badge badge-hs';
+      hsBadge.textContent = m.Hochschule;
+      badgeContainer.appendChild(hsBadge);
+      
+      const ectsBadge = document.createElement('span');
+      ectsBadge.className = 'badge badge-ects';
+      ectsBadge.textContent = `${m.ectsNum} ECTS`;
+      badgeContainer.appendChild(ectsBadge);
+      
+      const langBadge = document.createElement('span');
+      langBadge.className = 'badge badge-lang';
+      langBadge.textContent = m.detectedLang;
+      badgeContainer.appendChild(langBadge);
+      
+      if (m.assessment && m.assessment.trim()) {
+        const assessBadge = document.createElement('span');
+        assessBadge.className = 'badge badge-assess';
+        assessBadge.textContent = m.assessment.trim();
+        badgeContainer.appendChild(assessBadge);
+      }
+      
+      card.appendChild(badgeContainer);
+      
+      // Title
+      const title = document.createElement('h3');
+      title.className = 'card-title';
+      title.textContent = m.title;
+      title.title = m.title;
+      title.onclick = () => openDetailsModal(m);
+      card.appendChild(title);
+      
+      // Metadata (Teachers, Time, Dates)
+      const meta = document.createElement('div');
+      meta.className = 'card-meta';
+      
+      // Teachers
+      const teachersVal = m.teachers ? m.teachers.trim() : 'Keine Dozierenden angegeben';
+      meta.appendChild(createMetaItem(`
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      `, teachersVal));
+      
+      // Day & Time
+      let dayTimeStr = 'Unregelmässig / Keine festen Zeiten';
+      if (m.lektionDayOfWeek && m.lektionTimeFrom && m.lektionTimeTo) {
+        dayTimeStr = `${DAYS_DE[m.lektionDayOfWeek] || m.lektionDayOfWeek} • ${m.lektionTimeFrom} - ${m.lektionTimeTo}`;
+      }
+      meta.appendChild(createMetaItem(`
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      `, dayTimeStr));
+      
+      // Date Range
+      let dateRangeStr = 'Keine Daten vorhanden';
+      if (m.lektionFirstDate && m.lektionLastDate) {
+        const count = m.datesArray.length;
+        const countStr = count > 0 ? ` (${count} Termine)` : '';
+        dateRangeStr = `${m.lektionFirstDate} bis ${m.lektionLastDate}${countStr}`;
+      }
+      meta.appendChild(createMetaItem(`
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      `, dateRangeStr));
+      
+      // Leistungsnachweis
+      const perfVal = m.performanceRecords ? m.performanceRecords.trim() : 'Keine Leistungsnachweis-Details vorhanden';
+      const perfItem = createMetaItem(`
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      `, perfVal);
+      perfItem.classList.add('meta-item-wrap');
+      meta.appendChild(perfItem);
+      
+      card.appendChild(meta);
+      
+      // Actions
+      const actions = document.createElement('div');
+      actions.className = 'card-actions';
+      
+      const btnDetails = document.createElement('button');
+      btnDetails.className = 'btn btn-secondary';
+      btnDetails.textContent = 'Details';
+      btnDetails.onclick = () => openDetailsModal(m);
+      
+      const btnSelect = document.createElement('button');
+      const isSel = selectedModuleIds.has(m.planSemesterModulId);
+      btnSelect.className = `btn btn-select ${isSel ? 'selected' : ''}`;
+      btnSelect.innerHTML = isSel 
+        ? `✓ Ausgewählt`
+        : `＋ Auswählen`;
+      btnSelect.onclick = () => toggleSelection(m.planSemesterModulId);
+      
+      actions.appendChild(btnDetails);
+      actions.appendChild(btnSelect);
+      
+      card.appendChild(actions);
+      return card;
+    }
+    
+    function createMetaItem(svgHtml, text) {
+      const item = document.createElement('div');
+      item.className = 'meta-item';
+      item.innerHTML = svgHtml;
+      
+      const span = document.createElement('span');
+      span.textContent = text;
+      span.title = text;
+      item.appendChild(span);
+      return item;
+    }
+    
+    function createEmptyState() {
+      const state = document.createElement('div');
+      state.className = 'catalog-empty-state';
+      state.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3>Keine Module gefunden</h3>
+        <p>Probiere andere Suchbegriffe oder setze deine aktiven Filter zurück.</p>
+      `;
+      return state;
+    }
+    
+    function handleItemsPerPageChange() {
+      itemsPerPage = parseInt(document.getElementById('items-per-page').value, 10);
+      currentPage = 1;
+      renderCatalog();
+    }
+    
+    /* --- Chips Render --- */
+    function renderActiveChips() {
+      const bar = document.getElementById('active-chips-bar');
+      const container = document.getElementById('chips-list');
+      container.innerHTML = '';
+      
+      const addChip = (label, onRemove) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = label;
+        
+        const remove = document.createElement('button');
+        remove.className = 'chip-remove';
+        remove.textContent = '✕';
+        remove.onclick = onRemove;
+        
+        chip.appendChild(remove);
+        container.appendChild(chip);
+      };
+      
+      // Search
+      if (filters.search) {
+        addChip(`Suche: "${filters.search}"`, () => clearSearch());
+      }
+      
+      // Hochschule
+      filters.hs.forEach(hs => {
+        addChip(`HS: ${hs}`, () => {
+          filters.hs.delete(hs);
+          const chk = document.querySelector(`.tag-choice input[name="hs-${hs}"]`);
+          if (chk) chk.checked = false;
+          applyFilters();
+        });
+      });
+      
+      // Studiengang
+      if (filters.studyProgram) {
+        addChip(`Studiengang: ${filters.studyProgram}`, () => {
+          document.getElementById('filter-study-program').value = '';
+          applyFilters();
+        });
+      }
+      
+      // ECTS
+      if (filters.ectsMin !== null || filters.ectsMax !== null) {
+        const minText = filters.ectsMin !== null ? `≥ ${filters.ectsMin}` : '';
+        const maxText = filters.ectsMax !== null ? `≤ ${filters.ectsMax}` : '';
+        const range = [minText, maxText].filter(Boolean).join(' und ');
+        addChip(`ECTS: ${range}`, () => {
+          document.getElementById('filter-ects-min').value = '';
+          document.getElementById('filter-ects-max').value = '';
+          applyFilters();
+        });
+      }
+      
+      // Days
+      filters.days.forEach(day => {
+        addChip(`Tag: ${DAYS_DE[day] || day}`, () => {
+          filters.days.delete(day);
+          const chk = document.querySelector(`.tag-choice input[name="day-${day}"]`);
+          if (chk) chk.checked = false;
+          applyFilters();
+        });
+      });
+      
+      // Times
+      if (filters.timeFrom !== null || filters.timeTo !== null) {
+        const fromStr = filters.timeFrom !== null ? `ab ${minutesToTimeString(filters.timeFrom)}` : '';
+        const toStr = filters.timeTo !== null ? `bis ${minutesToTimeString(filters.timeTo)}` : '';
+        addChip(`Zeit: ${[fromStr, toStr].filter(Boolean).join(' ')}`, () => {
+          document.getElementById('filter-time-from').value = '';
+          document.getElementById('filter-time-to').value = '';
+          applyFilters();
+        });
+      }
+      
+      // Dates
+      if (filters.dateStart !== null || filters.dateEnd !== null) {
+        const startStr = filters.dateStart !== null ? `ab ${formatInputDate(filters.dateStart)}` : '';
+        const endStr = filters.dateEnd !== null ? `bis ${formatInputDate(filters.dateEnd)}` : '';
+        addChip(`Zeitraum: ${[startStr, endStr].filter(Boolean).join(' ')}`, () => {
+          document.getElementById('filter-date-start').value = '';
+          document.getElementById('filter-date-end').value = '';
+          applyFilters();
+        });
+      }
+      
+      // Language
+      filters.language.forEach(lang => {
+        addChip(`Sprache: ${lang}`, () => {
+          filters.language.delete(lang);
+          const chk = document.querySelector(`.tag-choice input[name="lang-${lang}"]`);
+          if (chk) chk.checked = false;
+          applyFilters();
+        });
+      });
+      
+      const hasChips = container.children.length > 0;
+      bar.style.display = hasChips ? 'flex' : 'none';
+    }
+    
+    /* --- Autocomplete study program --- */
+    function filterStudyPrograms(e) {
+      showStudyProgramResults();
+      
+      // Handle arrow navigation and enter if we want (basic search matches enough)
+      if (e.key === 'Enter') {
+        const list = document.getElementById('study-program-autocomplete-list');
+        if (list.children.length > 0) {
+          selectStudyProgram(list.children[0].textContent);
+        }
+      }
+    }
+    
+    function showStudyProgramResults() {
+      const query = normalizeString(document.getElementById('filter-study-program').value);
+      const list = document.getElementById('study-program-autocomplete-list');
+      list.innerHTML = '';
+      
+      let filteredPrograms = allStudyPrograms;
+      
+      // If a Hochschule filter is active, only show study programs belonging to those selected Hochschulen
+      if (filters.hs.size > 0) {
+        filteredPrograms = allStudyPrograms.filter(p => {
+          const hsSet = studyProgToHs[p];
+          if (!hsSet) return false;
+          // Check intersection between filters.hs and hsSet
+          for (let hs of filters.hs) {
+            if (hsSet.has(hs)) return true;
+          }
+          return false;
+        });
+      }
+      
+      const matches = filteredPrograms.filter(p => normalizeString(p).includes(query));
+      
+      if (matches.length > 0) {
+        matches.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'autocomplete-item';
+          item.textContent = p;
+          item.onclick = () => selectStudyProgram(p);
+          list.appendChild(item);
+        });
+        list.style.display = 'block';
+      } else {
+        list.style.display = 'none';
+      }
+    }
+    
+    function selectStudyProgram(val) {
+      document.getElementById('filter-study-program').value = val;
+      document.getElementById('study-program-autocomplete-list').style.display = 'none';
+      applyFilters();
+    }
+    
+    // Close autocompletes on click outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.autocomplete-container')) {
+        document.getElementById('study-program-autocomplete-list').style.display = 'none';
+      }
+    });
+    
+    /* --- State Sharing / Persistance --- */
+    function loadStateFromUrlAndStorage() {
+      let idsStr = '';
+      // 1. From URL Hash
+      if (window.location.hash) {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        idsStr = params.get('select') || '';
+      }
+      
+      // 2. From LocalStorage if URL is empty
+      if (!idsStr) {
+        idsStr = localStorage.getItem('selected_fhnw_modules') || '';
+      }
+      
+      if (idsStr) {
+        idsStr.split(',').forEach(id => {
+          if (id) selectedModuleIds.add(id);
+        });
+      }
+      
+      updateSelectionCounts();
+    }
+    
+    function syncState() {
+      const arr = Array.from(selectedModuleIds);
+      // Save to localStorage
+      localStorage.setItem('selected_fhnw_modules', arr.join(','));
+      
+      // Save to URL query / hash safely without reloading
+      const val = arr.length > 0 ? `select=${arr.join(',')}` : '';
+      if (history.replaceState) {
+        history.replaceState(null, null, val ? `#${val}` : ' ');
+      } else {
+        window.location.hash = val;
+      }
+      
+      updateSelectionCounts();
+      renderSelectedList();
+      renderTimetable();
+      renderComparison();
+    }
+    
+    function updateSelectionCounts() {
+      const count = selectedModuleIds.size;
+      document.getElementById('header-select-count').textContent = count;
+      document.getElementById('nav-count-selected').textContent = count;
+      document.getElementById('summary-module-count').textContent = count;
+      
+      // Sum ECTS
+      let sum = 0;
+      selectedModuleIds.forEach(id => {
+        const m = modulesList.find(x => x.planSemesterModulId === id);
+        if (m) sum += m.ectsNum;
+      });
+      document.getElementById('header-ects-sum').textContent = `${sum} ECTS`;
+      document.getElementById('summary-ects-total').textContent = `${sum}`;
+      
+      // Update share code input
+      const codeInput = document.getElementById('share-codes-input');
+      if (codeInput) {
+        codeInput.value = Array.from(selectedModuleIds).join(', ');
+      }
+    }
+    
+    function toggleSelection(id) {
+      if (selectedModuleIds.has(id)) {
+        selectedModuleIds.delete(id);
+        showToast('Modul entfernt');
+      } else {
+        selectedModuleIds.add(id);
+        showToast('Modul ausgewählt');
+      }
+      
+      // Update catalog cards if visible
+      document.querySelectorAll('.module-card').forEach(card => {
+        const btn = card.querySelector('.btn-select');
+        // Find if this card represents the toggled id (would need custom attribute or ID references)
+      });
+      
+      // Re-render
+      renderCatalog();
+      syncState();
+    }
+    
+    function copyShareLink() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Link kopiert! Jetzt teilen.');
+      }).catch(() => {
+        alert('Teilen-Link konnte nicht kopiert werden. Bitte kopiere die URL manuell.');
+      });
+    }
+    
+    function copyShareCodes() {
+      const input = document.getElementById('share-codes-input');
+      if (!input || !input.value) {
+        showToast('Keine Codes zum Kopieren vorhanden!');
+        return;
+      }
+      navigator.clipboard.writeText(input.value).then(() => {
+        showToast('Codes in Zwischenablage kopiert!');
+      }).catch(() => {
+        // Fallback
+        input.select();
+        document.execCommand('copy');
+        showToast('Codes kopiert!');
+      });
+    }
+    
+    function importShareCodes() {
+      const input = document.getElementById('share-codes-input');
+      if (!input || !input.value.trim()) {
+        showToast('Bitte füge zuerst Modul-Codes ein!');
+        return;
+      }
+      
+      const codes = input.value.split(/[\s,;\n\t]+/).map(c => c.trim()).filter(c => c);
+      if (codes.length === 0) {
+        showToast('Keine gültigen Modul-Codes gefunden.');
+        return;
+      }
+      
+      let importedCount = 0;
+      codes.forEach(code => {
+        // Check if the code represents a valid module in our dataset
+        const exists = modulesList.some(m => m.planSemesterModulId === code);
+        if (exists && !selectedModuleIds.has(code)) {
+          selectedModuleIds.add(code);
+          importedCount++;
+        }
+      });
+      
+      if (importedCount > 0) {
+        syncState();
+        renderCatalog(); // update catalog checkmarks
+        showToast(`${importedCount} Module importiert!`);
+      } else {
+        showToast('Keine neuen Module importiert (ungültig oder bereits ausgewählt).');
+      }
+    }
+    
+    /* --- Collision & Timetable Logic --- */
+    function getSelectedModules() {
+      return Array.from(selectedModuleIds)
+        .map(id => modulesList.find(x => x.planSemesterModulId === id))
+        .filter(Boolean);
+    }
+    
+    function calculateCollisions() {
+      const selected = getSelectedModules();
+      const collisions = [];
+      const len = selected.length;
+      
+      for (let i = 0; i < len; i++) {
+        for (let j = i + 1; j < len; j++) {
+          const a = selected[i];
+          const b = selected[j];
+          
+          // Check common dates
+          const commonDates = a.datesArray.filter(d => b.datesArray.includes(d));
+          if (commonDates.length > 0) {
+            // Check time overlap
+            if (a.timeStartMin !== null && a.timeEndMin !== null &&
+                b.timeStartMin !== null && b.timeEndMin !== null) {
+              
+              const startOverlap = Math.max(a.timeStartMin, b.timeStartMin);
+              const endOverlap = Math.min(a.timeEndMin, b.timeEndMin);
+              
+              if (startOverlap < endOverlap) {
+                // Collision!
+                collisions.push({
+                  m1: a,
+                  m2: b,
+                  dates: commonDates,
+                  overlapStart: startOverlap,
+                  overlapEnd: endOverlap
+                });
+              }
+            }
+          }
+        }
+      }
+      return collisions;
+    }
+    
+    function initTimetableGridLines() {
+      // 08:00 to 22:00 = 14 hours
+      const axis = document.getElementById('calendar-time-axis');
+      axis.innerHTML = '';
+      
+      const lines = document.getElementById('calendar-row-lines');
+      lines.innerHTML = '';
+      
+      for (let hour = 8; hour <= 21; hour++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-hour-cell';
+        cell.textContent = `${hour.toString().padStart(2, '0')}:00`;
+        axis.appendChild(cell);
+        
+        const line = document.createElement('div');
+        line.className = 'calendar-grid-row-line';
+        lines.appendChild(line);
+      }
+    }
+    
+    function renderTimetable() {
+      const grid = document.getElementById('calendar-grid-main');
+      
+      const selected = getSelectedModules();
+      
+      // Check if we need Sunday
+      const showSunday = selected.some(m => m.lektionDayOfWeek === 'Sunday' && m.timeStartMin !== null && m.timeEndMin !== null);
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      if (showSunday) days.push('Sunday');
+      
+      const numDays = days.length;
+      
+      // Update grid columns style
+      grid.style.gridTemplateColumns = `60px repeat(${numDays}, 1fr)`;
+      
+      // Generate headers
+      let html = `<div class="calendar-header-cell" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">Zeit</div>`;
+      days.forEach(day => {
+        html += `<div class="calendar-header-cell">${DAYS_DE[day]}</div>`;
+      });
+      
+      // Time axis
+      html += `<div class="calendar-time-axis" id="calendar-time-axis"></div>`;
+      
+      // Columns Container
+      html += `
+        <div class="calendar-columns-container" style="grid-column: 2 / span ${numDays}; height: calc(14 * 60px);">
+          <!-- Background vertical lines -->
+          <div class="calendar-grid-lines">
+            ${Array(numDays).fill('<div class="calendar-grid-col-line"></div>').join('')}
+          </div>
+          
+          <!-- Background horizontal lines -->
+          <div class="calendar-grid-row-lines" id="calendar-row-lines"></div>
+          
+          <!-- Modules placed here absolutely -->
+          <div id="calendar-items-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+        </div>
+      `;
+      
+      grid.innerHTML = html;
+      
+      // Re-populate hour cells and lines
+      initTimetableGridLines();
+      
+      // Now place items
+      const container = document.getElementById('calendar-items-overlay');
+      
+      // Filter modules that actually have a day and time
+      const schedModules = selected.filter(m => m.lektionDayOfWeek && days.includes(m.lektionDayOfWeek) && m.timeStartMin !== null && m.timeEndMin !== null);
+      
+      // Calculate active collisions to flag items in timetable
+      const activeCollisions = calculateCollisions();
+      const collidingIds = new Set();
+      activeCollisions.forEach(col => {
+        collidingIds.add(col.m1.planSemesterModulId);
+        collidingIds.add(col.m2.planSemesterModulId);
+      });
+      
+      // Render collisions warning list
+      const banner = document.getElementById('collision-alert-banner');
+      const listUl = document.getElementById('collision-list-ul');
+      listUl.innerHTML = '';
+      
+      if (activeCollisions.length > 0) {
+        banner.style.display = 'flex';
+        activeCollisions.forEach(col => {
+          const li = document.createElement('li');
+          li.className = 'collision-item';
+          
+          const title = document.createElement('strong');
+          title.textContent = `🚨 ${col.m1.title} ↔ ${col.m2.title}`;
+          li.appendChild(title);
+          
+          const details = document.createElement('div');
+          details.className = 'collision-details';
+          
+          const datesSample = col.dates.length > 3 
+            ? `${col.dates.slice(0, 3).join(', ')} ... (+${col.dates.length - 3})`
+            : col.dates.join(', ');
+            
+          details.innerHTML = `
+            <span>Wann: ${DAYS_DE[col.m1.lektionDayOfWeek]}s, ${minutesToTimeString(col.overlapStart)}-${minutesToTimeString(col.overlapEnd)}</span>
+            <span>Termine: ${datesSample}</span>
+          `;
+          li.appendChild(details);
+          listUl.appendChild(li);
+        });
+      } else {
+        banner.style.display = 'none';
+      }
+      
+      // Arrange timetable items in columns (detecting overlaps for sub-column rendering)
+      const dayColumns = {};
+      days.forEach(day => dayColumns[day] = []);
+      
+      schedModules.forEach(m => {
+        if (dayColumns[m.lektionDayOfWeek]) {
+          dayColumns[m.lektionDayOfWeek].push(m);
+        }
+      });
+      
+      // For each day, lay out modules using column-packing algorithm
+      days.forEach((day, dayIndex) => {
+        const dayModules = dayColumns[day];
+        dayModules.sort((a, b) => a.timeStartMin - b.timeStartMin);
+        
+        const columns = [];
+        
+        dayModules.forEach(m => {
+          let placed = false;
+          for (let c = 0; c < columns.length; c++) {
+            const lastInCol = columns[c][columns[c].length - 1];
+            if (m.timeStartMin >= lastInCol.timeEndMin) {
+              columns[c].push(m);
+              placed = true;
+              break;
+            }
+          }
+          if (!placed) {
+            columns.push([m]);
+          }
+        });
+        
+        // Render each module in this day
+        columns.forEach((colModules, colIdx) => {
+          colModules.forEach(m => {
+            const hasCol = collidingIds.has(m.planSemesterModulId);
+            const startMin = m.timeStartMin;
+            const endMin = m.timeEndMin;
+            
+            const calendarStart = 480;
+            const calendarEnd = 1320;
+            const totalMinutes = calendarEnd - calendarStart;
+            
+            if (startMin < calendarStart || endMin > calendarEnd) {
+              return;
+            }
+            
+            const topPct = ((startMin - calendarStart) / totalMinutes) * 100;
+            const heightPct = ((endMin - startMin) / totalMinutes) * 100;
+            
+            const colWidth = 100 / numDays;
+            const dayLeft = dayIndex * colWidth;
+            
+            const subColWidth = colWidth / columns.length;
+            const leftPct = dayLeft + (colIdx * subColWidth);
+            
+            const el = document.createElement('div');
+            el.className = `calendar-item ${hasCol ? 'has-collision' : ''}`;
+            el.style.top = `${topPct}%`;
+            el.style.height = `${heightPct}%`;
+            el.style.left = `${leftPct}%`;
+            el.style.width = `${subColWidth - 0.2}%`;
+            
+            el.onclick = () => openDetailsModal(m);
+            
+            let dateStr = '';
+            if (m.lektionFirstDate && m.lektionLastDate) {
+              const cleanDate = (dStr) => {
+                if (!dStr) return '';
+                const parts = dStr.split('.');
+                if (parts.length >= 2) return `${parts[0]}.${parts[1]}.`;
+                return dStr;
+              };
+              dateStr = `${cleanDate(m.lektionFirstDate)} - ${cleanDate(m.lektionLastDate)}`;
+            }
+            
+            el.innerHTML = `
+              <div class="calendar-item-title" title="${m.title}">${hasCol ? '⚠️ ' : ''}${m.title}</div>
+              <div class="calendar-item-time">${m.lektionTimeFrom}-${m.lektionTimeTo}</div>
+              ${dateStr ? `<div class="calendar-item-date" style="font-size: 0.6875rem; opacity: 0.85; font-weight: 500;">${dateStr}</div>` : ''}
+              <div class="calendar-item-room" title="Raum">${m.lektionRooms || '-'}</div>
+            `;
+            
+            container.appendChild(el);
+          });
+        });
+      });
+    }
+    
+    function renderSelectedList() {
+      const container = document.getElementById('selected-modules-list-container');
+      container.innerHTML = '';
+      
+      const selected = getSelectedModules();
+      
+      if (selected.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.875rem;">
+            Noch keine Module ausgewählt.
+          </div>
+        `;
+        return;
+      }
+      
+      selected.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'selected-item-card';
+        
+        const info = document.createElement('div');
+        info.className = 'selected-item-info';
+        
+        const title = document.createElement('div');
+        title.className = 'selected-item-title';
+        title.textContent = m.title;
+        title.onclick = () => openDetailsModal(m);
+        info.appendChild(title);
+        
+        const meta = document.createElement('div');
+        meta.className = 'selected-item-meta';
+        
+        const hsSpan = document.createElement('span');
+        hsSpan.textContent = m.Hochschule;
+        
+        const ectsSpan = document.createElement('span');
+        ectsSpan.textContent = `${m.ectsNum} ECTS`;
+        ectsSpan.style.color = 'var(--success)';
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek].slice(0,2)} ${m.lektionTimeFrom}` : 'Unregelmässig';
+        
+        meta.appendChild(hsSpan);
+        meta.appendChild(ectsSpan);
+        meta.appendChild(timeSpan);
+        
+        info.appendChild(meta);
+        item.appendChild(info);
+        
+        // Remove button
+        const btnRemove = document.createElement('button');
+        btnRemove.className = 'btn-remove-item';
+        btnRemove.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7" />
+          </svg>
+        `;
+        btnRemove.onclick = () => toggleSelection(m.planSemesterModulId);
+        item.appendChild(btnRemove);
+        
+        container.appendChild(item);
+      });
+    }
+    
+    /* --- Comparison Table Logic --- */
+    function renderComparison() {
+      const container = document.getElementById('comparison-view-container');
+      container.innerHTML = '';
+      
+      const selected = getSelectedModules();
+      
+      if (selected.length === 0) {
+        container.innerHTML = `
+          <div class="comparison-empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+            </svg>
+            <h3>Keine Module zum Vergleichen</h3>
+            <p>Wähle Module im Katalog aus, um sie hier direkt gegenüberzustellen.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const table = document.createElement('table');
+      table.className = 'comparison-table';
+      
+      // Prepare rows for comparison
+      // Columns = Property name + 1 column per selected module
+      const rows = [
+        { key: 'header', label: 'Modul' },
+        { key: 'ects', label: 'ECTS Punkte' },
+        { key: 'hochschule', label: 'Hochschule' },
+        { key: 'teachers', label: 'Dozierende' },
+        { key: 'lang', label: 'Unterrichtssprache' },
+        { key: 'daytime', label: 'Wochentag & Uhrzeit' },
+        { key: 'dates', label: 'Termine (Zeitraum)' },
+        { key: 'rooms', label: 'Räume' },
+        { key: 'performanceRecords', label: 'Leistungsnachweis' },
+        { key: 'assessment', label: 'Bewertungsskala' },
+        { key: 'keyidea', label: 'Schlüsselidee (Key Idea)' },
+        { key: 'content', label: 'Kursinhalt' }
+      ];
+      
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        
+        const th = document.createElement('th');
+        th.className = 'prop-col';
+        th.textContent = row.label;
+        tr.appendChild(th);
+        
+        selected.forEach(m => {
+          const td = document.createElement('td');
+          td.className = 'module-col';
+          
+          if (row.key === 'header') {
+            const card = document.createElement('div');
+            card.className = 'comparison-header-card';
+            
+            const title = document.createElement('div');
+            title.className = 'comparison-title';
+            title.textContent = m.title;
+            title.onclick = () => openDetailsModal(m);
+            card.appendChild(title);
+            
+            const btnRemove = document.createElement('button');
+            btnRemove.className = 'btn-remove-compare';
+            btnRemove.textContent = '✕';
+            btnRemove.title = 'Auswahl entfernen';
+            btnRemove.onclick = () => toggleSelection(m.planSemesterModulId);
+            card.appendChild(btnRemove);
+            
+            td.appendChild(card);
+          } else if (row.key === 'ects') {
+            td.innerHTML = `<span style="font-weight: 700; color: var(--success);">${m.ectsNum} ECTS</span>`;
+          } else if (row.key === 'hochschule') {
+            td.textContent = m.Hochschule;
+          } else if (row.key === 'teachers') {
+            td.textContent = m.teachers || '-';
+          } else if (row.key === 'lang') {
+            td.textContent = m.detectedLang;
+          } else if (row.key === 'daytime') {
+            td.textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek] || m.lektionDayOfWeek} ${m.lektionTimeFrom}-${m.lektionTimeTo}` : 'Unregelmässig';
+          } else if (row.key === 'dates') {
+            td.textContent = m.lektionFirstDate ? `${m.lektionFirstDate} bis ${m.lektionLastDate} (${m.datesArray.length} Termine)` : 'Keine Daten';
+          } else if (row.key === 'rooms') {
+            td.textContent = m.lektionRooms || '-';
+          } else if (row.key === 'performanceRecords') {
+            const div = document.createElement('div');
+            div.className = 'compare-cell-content';
+            div.textContent = m.performanceRecords || '-';
+            td.appendChild(div);
+          } else if (row.key === 'assessment') {
+            const div = document.createElement('div');
+            div.className = 'compare-cell-content';
+            div.textContent = m.assessment || m.assessmentEN || '-';
+            td.appendChild(div);
+          } else if (row.key === 'keyidea') {
+            const div = document.createElement('div');
+            div.className = 'compare-cell-content';
+            div.textContent = m.keyIdea || m.keyIdeaEN || '-';
+            td.appendChild(div);
+          } else if (row.key === 'content') {
+            const div = document.createElement('div');
+            div.className = 'compare-cell-content';
+            div.textContent = m.courseContent || m.courseContentEN || '-';
+            td.appendChild(div);
+          }
+          
+          tr.appendChild(td);
+        });
+        
+        table.appendChild(tr);
+      });
+      
+      container.appendChild(table);
+    }
+    
+    /* --- Modal Dialog Controllers --- */
+    function openDetailsModal(module) {
+      activeModalModule = module;
+      
+      // Determine default language (if DE exists, default to DE, else EN)
+      const hasDE = module.courseContent || module.title;
+      modalLanguage = hasDE ? 'DE' : 'EN';
+      document.getElementById('modal-lang-checkbox').checked = modalLanguage === 'DE';
+      
+      updateModalFields();
+      
+      const modal = document.getElementById('detail-modal');
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden'; // prevent scroll behind
+    }
+    
+    function closeDetailsModal(e) {
+      if (e && e.target !== document.getElementById('detail-modal')) return;
+      const modal = document.getElementById('detail-modal');
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      activeModalModule = null;
+    }
+    
+    function toggleModalLanguage() {
+      modalLanguage = document.getElementById('modal-lang-checkbox').checked ? 'DE' : 'EN';
+      updateModalFields();
+    }
+    
+    function updateModalFields() {
+      if (!activeModalModule) return;
+      const m = activeModalModule;
+      
+      // Select appropriate language text fields
+      const isDE = modalLanguage === 'DE';
+      let titleText = isDE ? m.title : m.titleEN;
+      if (!titleText || titleText.trim().length === 0) {
+        titleText = isDE ? m.titleEN : m.title;
+      }
+      document.getElementById('modal-title').textContent = titleText;
+      
+      // Badges
+      const badges = document.getElementById('modal-badges');
+      let badgesHtml = `
+        <span class="badge badge-hs">${m.Hochschule}</span>
+        <span class="badge badge-ects">${m.ectsNum} ECTS</span>
+        <span class="badge badge-lang">${m.detectedLang}</span>
+      `;
+      if (m.assessment && m.assessment.trim()) {
+        badgesHtml += `<span class="badge badge-assess">${m.assessment.trim()}</span>`;
+      }
+      badges.innerHTML = badgesHtml;
+      
+      document.getElementById('modal-subtitle').textContent = `Modul ID: ${m.planSemesterModulId}`;
+      
+      // Metadata
+      document.getElementById('modal-meta-teachers').textContent = m.detailedLecturers || m.teachers || '-';
+      document.getElementById('modal-meta-rooms').textContent = m.lektionRooms || '-';
+      document.getElementById('modal-meta-time').textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek]}s, ${m.lektionTimeFrom}-${m.lektionTimeTo}` : 'Unregelmässig';
+      document.getElementById('modal-meta-dates').textContent = m.lektionFirstDate ? `${m.lektionFirstDate} bis ${m.lektionLastDate}` : '-';
+      
+      // Helper to set field
+      const setField = (sectionId, bodyId, textDE, textEN) => {
+        let text = isDE ? textDE : textEN;
+        if (!text || text.trim().length === 0) {
+          text = isDE ? textEN : textDE;
+        }
+        const section = document.getElementById(sectionId);
+        const body = document.getElementById(bodyId);
+        
+        if (text && text.trim().length > 0) {
+          body.textContent = text;
+          section.style.display = 'flex';
+        } else {
+          section.style.display = 'none';
+        }
+      };
+      
+      // Set all descriptions
+      setField('section-key-idea', 'body-key-idea', m.keyIdea, m.keyIdeaEN);
+      setField('section-content', 'body-content', m.courseContent, m.courseContentEN);
+      setField('section-competences', 'body-competences', m.competences, m.competencesEN);
+      setField('section-methods', 'body-methods', m.learningStudyMethod, m.learningStudyMethodEN);
+      setField('section-literature', 'body-literature', m.literature, m.literatureEN);
+      setField('section-requirements', 'body-requirements', m.requirements, m.requirementsEN);
+      setField('section-performance-records', 'body-performance-records', m.performanceRecords, m.performanceRecords);
+      setField('section-assessment', 'body-assessment', m.assessment, m.assessmentEN);
+      setField('section-attendance', 'body-attendance', m.compulsoryAttendance, m.compulsoryAttendanceEN);
+      setField('section-remarks', 'body-remarks', m.remarks, m.remarksEN);
+      
+      // Modal selection button state
+      const btnSelect = document.getElementById('modal-select-btn');
+      const isSel = selectedModuleIds.has(m.planSemesterModulId);
+      btnSelect.className = `btn btn-select ${isSel ? 'selected' : ''}`;
+      btnSelect.innerHTML = isSel 
+        ? `✓ Ausgewählt`
+        : `＋ Auswählen`;
+    }
+    
+    function toggleModalSelection() {
+      if (activeModalModule) {
+        toggleSelection(activeModalModule.planSemesterModulId);
+        updateModalFields();
+      }
+    }
+    
+    function openOfficialUrl() {
+      if (activeModalModule && activeModalModule.url) {
+        window.open(activeModalModule.url, '_blank');
+      }
+    }
+    
+    /* --- Tab Switching --- */
+    function switchTab(tabName) {
+      activeTab = tabName;
+      
+      // Update buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id === `tab-btn-${tabName}`);
+      });
+      
+      // Update panes
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === `pane-${tabName}`);
+      });
+      
+      // Re-trigger layout-dependent drawings
+      if (tabName === 'timetable') {
+        renderTimetable();
+      } else if (tabName === 'comparison') {
+        renderComparison();
+      }
+    }
+    
+    function navigateToTab(tabName) {
+      switchTab(tabName);
+      // Smooth scroll back to top of main dashboard if scrolled down
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+    
+    /* --- Toast Notification Controller --- */
+    let toastTimeout = null;
+    function showToast(message) {
+      const toast = document.getElementById('toast-message');
+      document.getElementById('toast-text').textContent = message;
+      
+      toast.classList.add('show');
+      
+      if (toastTimeout) clearTimeout(toastTimeout);
+      
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+    
+    /* --- Date/Time Utility Parsers --- */
+    function parseGermanDate(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('.');
+      if (parts.length !== 3) return null;
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed in JS Date
+      const year = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    
+    function parseTimeToMinutes(timeStr) {
+      if (!timeStr) return null;
+      const parts = timeStr.split(':');
+      if (parts.length !== 2) return null;
+      return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+    
+    function minutesToTimeString(mins) {
+      if (mins === null) return '';
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+    
+    function formatInputDate(dateObj) {
+      if (!dateObj) return '';
+      const d = dateObj.getDate().toString().padStart(2, '0');
+      const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const y = dateObj.getFullYear();
+      return `${d}.${m}.${y}`;
+    }
+  </script>
+</body>
+</html>
