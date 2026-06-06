@@ -130,11 +130,55 @@ alten Roh-Exporte nutzten `hochschule` (klein) — das JS hat einen Fallback `m.
 - **Offline:** ohne Internet liefert `load_available_facets()` hardcodierte Fallback-Semester;
   `/api/modules` für ein ungecachtes Semester endet dann im `error`-Status.
 
+## GitHub & Arbeitsweise
+
+Das Projekt ist als öffentliches Git-Repository konzipiert. Wer es forkt oder klont, arbeitet mit
+seinem eigenen Remote — es gibt keinen fixen Repo-Pfad. Remote-URL und Branch-Stand jederzeit
+nachsehen:
+```bash
+git remote -v      # zeigt, wohin push/fetch gehen
+git status         # zeigt Branch und Änderungen
+```
+
+### Was ins Repo gehört (und was nicht)
+Getrackt: Quellcode (`app.py`, `scraper_core.py`, `templates/dashboard.html`), `requirements.txt`,
+`run.command`, `README.md`, `CLAUDE.md`, `cache/.gitkeep`.
+Per `.gitignore` ausgeschlossen: `.venv/`, `__pycache__/`, `cache/*.json` (gescrapte Daten),
+`.DS_Store`. → Das Repo enthält **keine** Modul-Daten und keine virtuelle Umgebung; beides entsteht
+zur Laufzeit. `cache/.gitkeep` hält nur den leeren `cache/`-Ordner im Repo.
+
+### Standard-Workflow für Änderungen
+```bash
+# Änderungen lokal testen (python app.py), dann:
+git add <geänderte Dateien>
+git commit -m "Kurze Beschreibung was und warum"
+git push                        # in den eigenen Remote (origin)
+```
+Commit-Messages auf Deutsch, präsens/imperativ („füge Windows-Starter hinzu", „behebe …").
+Vor dem Push lokal testen (App starten, Dashboard im Browser prüfen).
+
+### Wichtige Konventionen
+- **Nicht pushen ohne ausdrückliches OK der jeweiligen Person.** Lokal committen ist ok;
+  `git push` nur auf Aufforderung.
+- **Keine Cache-JSON oder `.venv` committen** (sind absichtlich ignoriert). Falls bewusst eine
+  Demo-Cache-Datei mitgeliefert werden soll, mit `git add -f cache/modules_<sem>.json` erzwingen —
+  vorher abklären (Datei ~8 MB, Daten veralten).
+- Größere Änderungen idealerweise als eigener Branch + PR (`gh pr create`), kleine Fixes direkt auf
+  `main`.
+
 ## Verteilung an Mitstudent:innen
 
-Ordner `modulplaner_app/` weitergeben (ZIP). Gefüllte `cache/modules_*.json` mitliefern, damit das
-Dashboard sofort Daten zeigt. Empfänger: Python 3 installieren → Doppelklick `run.command`.
-Der Cache und `.venv/` sind in `.gitignore` (für Git-Verteilung ggf. einzeln mitgeben).
+Den Repo-Link (aus `git remote -v` oder GitHub-Weboberfläche) teilen:
+```bash
+git clone <repo-url>
+cd <repo-ordner>
+# macOS: Doppelklick run.command  |  sonst: pip install -r requirements.txt && python app.py
+```
+Beim ersten Start scrapt die App das gewählte Semester selbst (einige Minuten), danach Cache.
+Alternativ Ordner als ZIP weitergeben; eine gefüllte `cache/modules_*.json` kann separat
+mitgegeben werden, damit das Dashboard sofort Daten zeigt.
+
+Offen (siehe Backlog-Ideen): `run.bat` für Windows-Nutzer:innen ergänzen.
 
 ## Entwickelt für
 
