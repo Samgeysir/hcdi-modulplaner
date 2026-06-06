@@ -2194,12 +2194,22 @@
       }
     }
 
+    // Chronologischer Sortierschlüssel aus dem Semester-Value, z.B. "26HS" -> 2026*10+1.
+    // FS (Frühling) liegt vor HS (Herbst). Unbekannte Formate landen am Ende (-1).
+    function semesterSortKey(value) {
+      const m = /^(\d{2})(FS|HS)$/.exec(value || '');
+      if (!m) return -1;
+      return (2000 + parseInt(m[1], 10)) * 10 + (m[2] === 'HS' ? 1 : 0);
+    }
+
     async function initSemesterSelector() {
       const sel = document.getElementById('semester-select');
       let semesters = [];
       try {
         semesters = await (await fetch('/api/semesters')).json();
       } catch (e) { semesters = []; }
+      // Neuestes Semester zuerst (Dropdown von neu nach alt)
+      semesters.sort((a, b) => semesterSortKey(b.value) - semesterSortKey(a.value));
       sel.innerHTML = '';
       semesters.forEach(s => {
         const opt = document.createElement('option');
@@ -2207,7 +2217,7 @@
         opt.textContent = s.label;
         sel.appendChild(opt);
       });
-      // URL-Parameter ?semester= berücksichtigen, sonst erstes Semester
+      // URL-Parameter ?semester= berücksichtigen, sonst das neueste Semester (jetzt semesters[0])
       const urlSem = new URLSearchParams(location.search).get('semester');
       const chosen = (urlSem && semesters.some(s => s.value === urlSem)) ? urlSem
                     : (semesters[0] && semesters[0].value);
