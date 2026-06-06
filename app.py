@@ -126,7 +126,9 @@ def index():
 @app.route("/api/semesters")
 def api_semesters():
     _, semesters, _ = scraper_core.load_available_facets()
-    out = [{"value": data["value"], "label": label} for label, data in semesters.items()]
+    out = [{"value": data["value"], "label": label,
+            "cached": os.path.exists(_cache_path(data["value"]))}
+           for label, data in semesters.items()]
     return jsonify(out)
 
 

@@ -208,6 +208,25 @@
       text-align: center;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
+    .start-select {
+      width: 100%;
+      margin: 0.5rem 0 0.5rem;
+    }
+    .start-load-btn {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--font-header, sans-serif);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: filter 0.15s ease;
+    }
+    .start-load-btn:hover { filter: brightness(1.1); }
     .load-spinner {
       width: 44px;
       height: 44px;
@@ -1657,8 +1676,19 @@
     </div>
   </header>
 
+  <!-- Start-Auswahl: Semester wählen, bevor etwas geladen wird -->
+  <div id="start-overlay" class="load-overlay" style="display:flex;">
+    <div class="load-card">
+      <div class="load-message">Welches Semester möchtest du laden?</div>
+      <select id="start-semester-select" class="semester-select start-select" title="Semester wählen"></select>
+      <p id="start-status-hint" class="load-hint"></p>
+      <button id="start-load-btn" class="start-load-btn">Laden</button>
+      <p class="load-hint" style="margin-top:0.75rem;">✓ = bereits geladen (öffnet sofort) &nbsp;•&nbsp; ○ = noch nicht geladen</p>
+    </div>
+  </div>
+
   <!-- Lade-Overlay (Live-Daten) -->
-  <div id="load-overlay" class="load-overlay" style="display:flex;">
+  <div id="load-overlay" class="load-overlay" style="display:none;">
     <div class="load-card">
       <div class="load-spinner"></div>
       <div id="load-message" class="load-message">Lade Module …</div>
@@ -2146,6 +2176,12 @@
 
     // ---- Live-Daten-Anbindung ans Backend ----
     let currentSemester = null;
+    let ALL_SEMESTERS = [];   // [{value, label, cached}], neuestes zuerst
+
+    function showStartOverlay(show) {
+      const ov = document.getElementById('start-overlay');
+      if (ov) ov.style.display = show ? 'flex' : 'none';
+    }
 
     function showOverlay(show, message, pct) {
       const ov = document.getElementById('load-overlay');
@@ -2187,6 +2223,7 @@
         if (!resp.ok) { showOverlay(true, 'Konnte Daten nicht laden.', null); return; }
         MODULES_DATA = await resp.json();
         buildDashboard();
+        markSemesterCached(semester);  // ist jetzt geladen -> Marker aktualisieren
         showOverlay(false);
       } catch (e) {
         console.error('loadSemester error', e);
@@ -2202,39 +2239,98 @@
       return (2000 + parseInt(m[1], 10)) * 10 + (m[2] === 'HS' ? 1 : 0);
     }
 
+    // Option-Beschriftung mit Status-Marker: ✓ geladen / ○ noch nicht
+    function semesterOptionLabel(s) {
+      return (s.cached ? '✓ ' : '○ ') + s.label;
+    }
+
+    // Füllt ein <select> aus ALL_SEMESTERS und behält die aktuelle Auswahl bei
+    function fillSemesterSelect(el) {
+      if (!el) return;
+      const prev = el.value;
+      el.innerHTML = '';
+      ALL_SEMESTERS.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.value;
+        opt.textContent = semesterOptionLabel(s);
+        el.appendChild(opt);
+      });
+      if (prev) el.value = prev;
+    }
+
+    // Markiert ein Semester als geladen und aktualisiert beide Dropdowns
+    function markSemesterCached(value) {
+      const s = ALL_SEMESTERS.find(x => x.value === value);
+      if (s) s.cached = true;
+      fillSemesterSelect(document.getElementById('semester-select'));
+      fillSemesterSelect(document.getElementById('start-semester-select'));
+      document.getElementById('semester-select').value = value;
+    }
+
+    function setSubtitle(value) {
+      const s = ALL_SEMESTERS.find(x => x.value === value);
+      const sub = document.getElementById('header-subtitle');
+      if (sub && s) sub.textContent = s.label;
+    }
+
+    function updateStartHint() {
+      const startSel = document.getElementById('start-semester-select');
+      const hint = document.getElementById('start-status-hint');
+      const s = ALL_SEMESTERS.find(x => x.value === startSel.value);
+      if (!hint || !s) return;
+      hint.textContent = s.cached
+        ? '✓ Bereits geladen — öffnet sofort.'
+        : '○ Noch nicht geladen — erstes Laden dauert einige Minuten.';
+    }
+
     async function initSemesterSelector() {
       const sel = document.getElementById('semester-select');
+      const startSel = document.getElementById('start-semester-select');
       let semesters = [];
       try {
         semesters = await (await fetch('/api/semesters')).json();
       } catch (e) { semesters = []; }
       // Neuestes Semester zuerst (Dropdown von neu nach alt)
       semesters.sort((a, b) => semesterSortKey(b.value) - semesterSortKey(a.value));
-      sel.innerHTML = '';
-      semesters.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.value;
-        opt.textContent = s.label;
-        sel.appendChild(opt);
-      });
-      // URL-Parameter ?semester= berücksichtigen, sonst das neueste Semester (jetzt semesters[0])
-      const urlSem = new URLSearchParams(location.search).get('semester');
-      const chosen = (urlSem && semesters.some(s => s.value === urlSem)) ? urlSem
-                    : (semesters[0] && semesters[0].value);
-      if (chosen) {
-        sel.value = chosen;
-        const sub = document.getElementById('header-subtitle');
-        if (sub) sub.textContent = sel.options[sel.selectedIndex].textContent;
-        await loadSemester(chosen);
-      } else {
-        showOverlay(true, 'Keine Semester verfügbar (Internet/API prüfen).', null);
-      }
+      ALL_SEMESTERS = semesters;
 
+      fillSemesterSelect(sel);
+      fillSemesterSelect(startSel);
+
+      // Header-Dropdown: Wechsel lädt direkt das gewählte Semester
       sel.addEventListener('change', async () => {
-        const sub = document.getElementById('header-subtitle');
-        if (sub) sub.textContent = sel.options[sel.selectedIndex].textContent;
+        setSubtitle(sel.value);
         await loadSemester(sel.value);
       });
+
+      if (!semesters.length) {
+        showStartOverlay(false);
+        showOverlay(true, 'Keine Semester verfügbar (Internet/API prüfen).', null);
+        return;
+      }
+
+      // ?semester= in der URL: direkt laden, ohne Auswahl-Screen
+      const urlSem = new URLSearchParams(location.search).get('semester');
+      if (urlSem && semesters.some(s => s.value === urlSem)) {
+        sel.value = urlSem;
+        setSubtitle(urlSem);
+        showStartOverlay(false);
+        await loadSemester(urlSem);
+        return;
+      }
+
+      // Sonst: Auswahl-Screen zeigen — nichts wird automatisch geladen.
+      startSel.value = semesters[0].value;  // neuestes vorausgewählt
+      updateStartHint();
+      startSel.addEventListener('change', updateStartHint);
+      document.getElementById('start-load-btn').addEventListener('click', async () => {
+        const v = startSel.value;
+        sel.value = v;
+        setSubtitle(v);
+        showStartOverlay(false);
+        await loadSemester(v);
+      });
+      showStartOverlay(true);
     }
 
     async function refreshData() {
