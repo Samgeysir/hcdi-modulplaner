@@ -200,6 +200,67 @@ def _wait_for_server(timeout=20.0):
     return False
 
 
+class _NativeApi:
+    """JS-Brücke fürs native Fenster. `window.open` öffnet im WKWebView keinen
+    Systembrowser; das Frontend ruft stattdessen `pywebview.api.open_external`."""
+
+    def open_external(self, url):
+        if url:
+            webbrowser.open(url)
+        return True
+
+
+def _install_macos_edit_menu():
+    """Setzt ein Standard-„Bearbeiten"-Menü, damit Cmd+A/C/V/X im WKWebView wirken.
+
+    Das via PyInstaller gebündelte pywebview-Fenster hat sonst kein Menü, sodass
+    macOS die Shortcuts nicht an den First Responder (die WebView) weiterleitet.
+    Die Einträge nutzen die Standard-Responder-Selektoren mit Target `nil`, sodass
+    macOS sie automatisch an das fokussierte Element zustellt.
+
+    pywebview ruft diese Funktion in einem Hintergrund-Thread auf; AppKit-Menü-
+    Operationen müssen aber auf dem Main-Thread laufen -> via callAfter dispatchen.
+    """
+    try:
+        from PyObjCTools.AppHelper import callAfter
+    except Exception:
+        return  # kein pyobjc -> still überspringen
+    callAfter(_build_macos_edit_menu)
+
+
+def _build_macos_edit_menu():
+    """Baut das Edit-Menü (läuft auf dem Main-Thread, nachdem NSApplication steht)."""
+    try:
+        from AppKit import NSApp, NSMenu, NSMenuItem
+    except Exception:
+        return  # kein AppKit -> still überspringen
+
+    def _add(submenu, title, selector, key):
+        item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            title, selector, key
+        )
+        submenu.addItem_(item)
+
+    main_menu = NSApp.mainMenu()
+    if main_menu is None:
+        main_menu = NSMenu.alloc().init()
+        NSApp.setMainMenu_(main_menu)
+
+    edit_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+        "Bearbeiten", None, ""
+    )
+    edit_menu = NSMenu.alloc().initWithTitle_("Bearbeiten")
+    _add(edit_menu, "Rückgängig", "undo:", "z")
+    _add(edit_menu, "Wiederholen", "redo:", "Z")
+    edit_menu.addItem_(NSMenuItem.separatorItem())
+    _add(edit_menu, "Ausschneiden", "cut:", "x")
+    _add(edit_menu, "Kopieren", "copy:", "c")
+    _add(edit_menu, "Einfügen", "paste:", "v")
+    _add(edit_menu, "Alles auswählen", "selectAll:", "a")
+    edit_item.setSubmenu_(edit_menu)
+    main_menu.addItem_(edit_item)
+
+
 def main():
     """Startet den Server und zeigt das Dashboard in einem nativen Fenster.
 
@@ -214,8 +275,12 @@ def main():
     try:
         import webview  # pywebview: natives Fenster
 
-        webview.create_window("FHNW Modulplaner", URL, width=1400, height=900)
-        webview.start()  # blockiert bis das Fenster geschlossen wird
+        webview.create_window(
+            "FHNW Modulplaner", URL, width=1400, height=900, js_api=_NativeApi()
+        )
+        # macOS: Edit-Menü erst setzen, wenn die GUI/NSApplication bereit ist.
+        start_func = _install_macos_edit_menu if sys.platform == "darwin" else None
+        webview.start(start_func)  # blockiert bis das Fenster geschlossen wird
         # Fenster zu -> Funktion kehrt zurück, daemon-Server endet mit dem Prozess
     except Exception:
         # Fallback ohne pywebview: Browser öffnen, Server am Leben halten

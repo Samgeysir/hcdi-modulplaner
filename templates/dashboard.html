@@ -1576,6 +1576,21 @@
       white-space: pre-wrap; /* Preserve newlines */
       padding-left: 0.75rem;
     }
+
+    /* Textauswahl im nativen Fenster (WKWebView) explizit erlauben, damit Infos
+       (inkl. Titel, Modul-ID und Badges im Header) mit dem Cursor markiert und
+       kopiert werden koennen. */
+    .modal-container {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .modal-content, .modal-header, .description-body, .modal-meta-val {
+      cursor: text;
+    }
+    /* Bedienelemente bleiben Klick-Elemente (kein Text-Cursor). */
+    .modal-close-btn, .toggle-switch, .modal-footer, .modal-footer .btn {
+      cursor: pointer;
+    }
     
     .modal-footer {
       padding: 1rem 1.5rem;
@@ -3874,8 +3889,14 @@
     }
     
     function openOfficialUrl() {
-      if (activeModalModule && activeModalModule.url) {
-        window.open(activeModalModule.url, '_blank');
+      if (!activeModalModule || !activeModalModule.url) return;
+      const url = activeModalModule.url;
+      // Im nativen pywebview-Fenster öffnet window.open keinen Systembrowser ->
+      // ueber die JS-Bruecke gehen; im Browser-Fallback bleibt window.open.
+      if (window.pywebview && window.pywebview.api && window.pywebview.api.open_external) {
+        window.pywebview.api.open_external(url);
+      } else {
+        window.open(url, '_blank');
       }
     }
     
