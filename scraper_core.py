@@ -188,6 +188,19 @@ def fetch_modules(semester_data, university, uni_data):
 # ---------------------------------------------------------------------------
 # Detail-Anreicherung (parallel)
 # ---------------------------------------------------------------------------
+def _sort_sessions(sessions):
+    """Sortiert Sitzungen chronologisch nach Datum (dd.mm.yyyy). Sitzungen ohne
+    parsbares Datum behalten ihre relative Reihenfolge und landen am Ende."""
+    def key(s):
+        raw = s.get("date", "")
+        try:
+            d, m, y = (int(x) for x in raw.split("."))
+            return (0, y, m, d)
+        except (ValueError, AttributeError):
+            return (1, 0, 0, 0)
+    return sorted(sessions, key=key)
+
+
 def _enrich_single(module):
     """Reichert ein Modul-Dict in-place mit Detail- und Lektionsfeldern an."""
     module_id = module.get("planSemesterModulId")
@@ -228,11 +241,22 @@ def _enrich_single(module):
                     all_lektionen.extend(lek)
             if all_lektionen:
                 dates = sorted({l.get("lektionDate", "") for l in all_lektionen if l.get("lektionDate")})
+                # Strukturierte Sitzungsliste: pro Lektion Datum+Tag+Zeit+Raum zusammen halten,
+                # damit das Frontend Mehrtages-/Mehrzeit-Module korrekt rendern kann.
+                sessions = []
                 for lek in all_lektionen:
-                    for room in lek.get("rooms", []):
-                        rn = room.get("bezeichnung", "")
-                        if rn and rn not in rooms_list:
+                    rooms = [r.get("bezeichnung", "") for r in lek.get("rooms", []) if r.get("bezeichnung")]
+                    for rn in rooms:
+                        if rn not in rooms_list:
                             rooms_list.append(rn)
+                    sessions.append({
+                        "date": lek.get("lektionDate", ""),
+                        "dayOfWeek": lek.get("lektionDayOfWeek", ""),
+                        "timeFrom": lek.get("lektionVon", ""),
+                        "timeTo": lek.get("lektionBis", ""),
+                        "room": ", ".join(rooms),
+                    })
+                module["lektionSessions"] = _sort_sessions(sessions)
                 if dates:
                     module["lektionDates"] = ", ".join(dates)
                     module["lektionFirstDate"] = dates[0]
@@ -244,24 +268,41 @@ def _enrich_single(module):
                 module["lektionTimeTo"] = first.get("lektionBis", "")
                 module["lektionDayOfWeek"] = first.get("lektionDayOfWeek", "")
             else:
+                sessions = []
                 for inst in details["moduleInstances"]:
                     if inst.get("day") and not module.get("lektionDayOfWeek"):
                         module["lektionDayOfWeek"] = inst["day"]
                     start = inst.get("startTime", "")
-                    if start and not module.get("lektionTimeFrom"):
+                    time_from = ""
+                    if start:
                         try:
-                            module["lektionTimeFrom"] = start.split("T")[1][:5]
+                            time_from = start.split("T")[1][:5]
                         except (IndexError, AttributeError):
-                            pass
+                            time_from = ""
+                    if time_from and not module.get("lektionTimeFrom"):
+                        module["lektionTimeFrom"] = time_from
                     end = inst.get("endTime", "")
-                    if end and not module.get("lektionTimeTo"):
+                    time_to = ""
+                    if end:
                         try:
-                            module["lektionTimeTo"] = end.split("T")[1][:5]
+                            time_to = end.split("T")[1][:5]
                         except (IndexError, AttributeError):
-                            pass
+                            time_to = ""
+                    if time_to and not module.get("lektionTimeTo"):
+                        module["lektionTimeTo"] = time_to
                     loc = inst.get("location", "")
                     if loc and loc not in rooms_list:
                         rooms_list.append(loc)
+                    if inst.get("day") or time_from:
+                        sessions.append({
+                            "date": "",
+                            "dayOfWeek": inst.get("day", ""),
+                            "timeFrom": time_from,
+                            "timeTo": time_to,
+                            "room": loc,
+                        })
+                if sessions:
+                    module["lektionSessions"] = sessions
                 if rooms_list:
                     module["lektionRooms"] = ", ".join(rooms_list)
     return module
@@ -305,6 +346,9 @@ def to_dashboard_record(module, university):
 
     for field in SEARCH_FIELDS + DETAIL_FIELDS + LEKTION_FIELDS + ["detailedLecturers"]:
         rec[field] = join(module.get(field, ""))
+
+    # Strukturierte Sitzungsliste als Liste durchreichen (nicht zu String joinen).
+    rec["lektionSessions"] = module.get("lektionSessions", [])
 
     module_id = module.get("planSemesterModulId", "")
     if module_id:

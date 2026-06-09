@@ -2190,6 +2190,9 @@
     };
     
     const DAYS_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    // JS Date.getDay() (0=Sonntag) -> englischer Wochentagsname (für "Datum gewinnt"-Ableitung)
+    const INDEX_WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
     /* --- State Management --- */
     let modulesList = [];
@@ -2490,51 +2493,85 @@
         const timeStartMin = parseTimeToMinutes(m.lektionTimeFrom);
         const timeEndMin = parseTimeToMinutes(m.lektionTimeTo);
         
-        // Splitted and weekday-filtered dates
-        const rawDates = m.lektionDates 
-          ? m.lektionDates.split(',').map(d => d.trim()).filter(d => d) 
+        // Build per-session occurrences. "Datum gewinnt": der Wochentag wird aus dem
+        // Kalenderdatum abgeleitet (parseGermanDate.getDay()), nicht aus lektionDayOfWeek.
+        const rawDates = m.lektionDates
+          ? m.lektionDates.split(',').map(d => d.trim()).filter(d => d)
           : [];
-        
-        const WEEKDAY_INDEX = {
-          'Sunday': 0,
-          'Monday': 1,
-          'Tuesday': 2,
-          'Wednesday': 3,
-          'Thursday': 4,
-          'Friday': 5,
-          'Saturday': 6
-        };
-        
-        const datesArray = [];
-        rawDates.forEach(dateStr => {
-          const parsed = parseGermanDate(dateStr);
-          if (parsed) {
-            if (m.lektionDayOfWeek && WEEKDAY_INDEX[m.lektionDayOfWeek] !== undefined) {
-              if (parsed.getDay() === WEEKDAY_INDEX[m.lektionDayOfWeek]) {
-                datesArray.push(dateStr);
-              }
-            } else {
-              datesArray.push(dateStr);
-            }
+
+        const occurrences = [];
+        if (Array.isArray(m.lektionSessions) && m.lektionSessions.length > 0) {
+          // Bevorzugt: strukturierte Sitzungsliste aus dem Backend (Tag+Zeit pro Termin).
+          m.lektionSessions.forEach(s => {
+            const parsed = parseGermanDate(s.date);
+            const dayName = parsed ? INDEX_WEEKDAY[parsed.getDay()] : (s.dayOfWeek || '');
+            occurrences.push({
+              dateStr: s.date || '',
+              parsed,
+              dayName,
+              timeStartMin: parseTimeToMinutes(s.timeFrom),
+              timeEndMin: parseTimeToMinutes(s.timeTo),
+              room: s.room || ''
+            });
+          });
+        } else {
+          // Fallback (alte Caches/Zusatzmodule): Tag aus Datum ableiten, Zeit = Flachwert.
+          rawDates.forEach(dateStr => {
+            const parsed = parseGermanDate(dateStr);
+            if (!parsed) return;
+            occurrences.push({
+              dateStr,
+              parsed,
+              dayName: INDEX_WEEKDAY[parsed.getDay()],
+              timeStartMin,
+              timeEndMin,
+              room: m.lektionRooms || ''
+            });
+          });
+          // Kein Datum, aber ein bekannter Tag (z.B. moduleInstances-Fallback) -> eine Sitzung.
+          if (occurrences.length === 0 && m.lektionDayOfWeek) {
+            occurrences.push({
+              dateStr: '', parsed: null, dayName: m.lektionDayOfWeek,
+              timeStartMin, timeEndMin, room: m.lektionRooms || ''
+            });
           }
+        }
+
+        // Slots: nach (Tag, Startzeit, Endzeit) deduplizierte Occurrences -> ein Kalenderblock
+        // je Wochentag-Zeit-Kombination (wöchentliche Wiederholung wird nicht gestapelt).
+        const slotMap = new Map();
+        occurrences.forEach(o => {
+          if (!o.dayName) return;
+          const key = `${o.dayName}|${o.timeStartMin}|${o.timeEndMin}`;
+          let slot = slotMap.get(key);
+          if (!slot) {
+            slot = { dayName: o.dayName, timeStartMin: o.timeStartMin, timeEndMin: o.timeEndMin, dates: [], rooms: new Set() };
+            slotMap.set(key, slot);
+          }
+          if (o.dateStr) slot.dates.push(o.dateStr);
+          if (o.room) o.room.split(',').forEach(r => { const t = r.trim(); if (t) slot.rooms.add(t); });
         });
-        
-        // Parse all valid dates to Date objects to get true chronological range
-        const parsedDates = datesArray.map(dStr => parseGermanDate(dStr)).filter(Boolean);
-        
+        const slots = Array.from(slotMap.values()).map(s => ({
+          dayName: s.dayName, timeStartMin: s.timeStartMin, timeEndMin: s.timeEndMin,
+          dates: s.dates, room: Array.from(s.rooms).join(', ')
+        }));
+
+        const daysSet = new Set(occurrences.map(o => o.dayName).filter(Boolean));
+        const datesArray = occurrences.filter(o => o.dateStr).map(o => o.dateStr);
+
+        // True chronological range across all occurrences
+        const parsedDates = occurrences.map(o => o.parsed).filter(Boolean).sort((a, b) => a - b);
         let trueFirstDate = m.lektionFirstDate;
         let trueLastDate = m.lektionLastDate;
         let parsedFirstDate = parseGermanDate(m.lektionFirstDate);
         let parsedLastDate = parseGermanDate(m.lektionLastDate);
-        
         if (parsedDates.length > 0) {
-          parsedDates.sort((a, b) => a - b);
           parsedFirstDate = parsedDates[0];
           parsedLastDate = parsedDates[parsedDates.length - 1];
           trueFirstDate = formatInputDate(parsedFirstDate);
           trueLastDate = formatInputDate(parsedLastDate);
         }
-          
+
         return {
           ...m,
           Hochschule: m.Hochschule || m.hochschule || '',
@@ -2547,6 +2584,9 @@
           parsedFirstDate,
           parsedLastDate,
           datesArray,
+          occurrences,
+          slots,
+          daysSet,
           searchScore: 0
         };
       });
@@ -2587,10 +2627,10 @@
         hsContainer.appendChild(createTagChoice('hs', hs, hs));
       });
       
-      // Populate Day tags (only days present in data)
+      // Populate Day tags (only days present in data) — alle Tage aller Sitzungen
       const daySet = new Set();
       modulesList.forEach(m => {
-        if (m.lektionDayOfWeek) daySet.add(m.lektionDayOfWeek);
+        m.daysSet.forEach(d => daySet.add(d));
       });
       
       const dayContainer = document.getElementById('filter-day-container');
@@ -2675,7 +2715,7 @@
         if (filters.hs.size > 0 && !filters.hs.has(m.Hochschule)) return false;
         
         // 3. Wochentag
-        if (filters.days.size > 0 && !filters.days.has(m.lektionDayOfWeek)) return false;
+        if (filters.days.size > 0 && ![...m.daysSet].some(d => filters.days.has(d))) return false;
         
         // 4. ECTS Range
         if (filters.ectsMin !== null && m.ectsNum < filters.ectsMin) return false;
@@ -3075,10 +3115,7 @@
       `, teachersVal));
       
       // Day & Time
-      let dayTimeStr = 'Unregelmässig / Keine festen Zeiten';
-      if (m.lektionDayOfWeek && m.lektionTimeFrom && m.lektionTimeTo) {
-        dayTimeStr = `${DAYS_DE[m.lektionDayOfWeek] || m.lektionDayOfWeek} • ${m.lektionTimeFrom} - ${m.lektionTimeTo}`;
-      }
+      const dayTimeStr = (m.slots && m.slots.length) ? formatSlots(m) : 'Unregelmässig / Keine festen Zeiten';
       meta.appendChild(createMetaItem(`
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -3485,28 +3522,40 @@
         for (let j = i + 1; j < len; j++) {
           const a = selected[i];
           const b = selected[j];
-          
-          // Check common dates
-          const commonDates = a.datesArray.filter(d => b.datesArray.includes(d));
-          if (commonDates.length > 0) {
-            // Check time overlap
-            if (a.timeStartMin !== null && a.timeEndMin !== null &&
-                b.timeStartMin !== null && b.timeEndMin !== null) {
-              
-              const startOverlap = Math.max(a.timeStartMin, b.timeStartMin);
-              const endOverlap = Math.min(a.timeEndMin, b.timeEndMin);
-              
-              if (startOverlap < endOverlap) {
-                // Collision!
-                collisions.push({
-                  m1: a,
-                  m2: b,
-                  dates: commonDates,
-                  overlapStart: startOverlap,
-                  overlapEnd: endOverlap
-                });
-              }
+
+          // Kollision pro Sitzung: gleiches Datum UND Zeitüberlappung.
+          // So werden unterschiedliche Zeiten je Tag korrekt berücksichtigt.
+          const bByDate = {};
+          b.occurrences.forEach(o => {
+            if (o.dateStr && o.timeStartMin !== null && o.timeEndMin !== null) {
+              (bByDate[o.dateStr] = bByDate[o.dateStr] || []).push(o);
             }
+          });
+
+          const dates = [];
+          let overlap = null;
+          a.occurrences.forEach(o => {
+            if (!o.dateStr || o.timeStartMin === null || o.timeEndMin === null) return;
+            (bByDate[o.dateStr] || []).forEach(bo => {
+              const startOverlap = Math.max(o.timeStartMin, bo.timeStartMin);
+              const endOverlap = Math.min(o.timeEndMin, bo.timeEndMin);
+              if (startOverlap < endOverlap) {
+                if (!dates.includes(o.dateStr)) dates.push(o.dateStr);
+                if (!overlap) overlap = { start: startOverlap, end: endOverlap, day: o.dayName };
+              }
+            });
+          });
+
+          if (dates.length > 0) {
+            dates.sort((d1, d2) => parseGermanDate(d1) - parseGermanDate(d2));
+            collisions.push({
+              m1: a,
+              m2: b,
+              dates,
+              overlapStart: overlap.start,
+              overlapEnd: overlap.end,
+              overlapDay: overlap.day
+            });
           }
         }
       }
@@ -3539,7 +3588,7 @@
       const selected = getSelectedModules();
       
       // Check if we need Sunday
-      const showSunday = selected.some(m => m.lektionDayOfWeek === 'Sunday' && m.timeStartMin !== null && m.timeEndMin !== null);
+      const showSunday = selected.some(m => m.slots.some(s => s.dayName === 'Sunday' && s.timeStartMin !== null && s.timeEndMin !== null));
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       if (showSunday) days.push('Sunday');
       
@@ -3581,9 +3630,6 @@
       // Now place items
       const container = document.getElementById('calendar-items-overlay');
       
-      // Filter modules that actually have a day and time
-      const schedModules = selected.filter(m => m.lektionDayOfWeek && days.includes(m.lektionDayOfWeek) && m.timeStartMin !== null && m.timeEndMin !== null);
-      
       // Calculate active collisions to flag items in timetable
       const activeCollisions = calculateCollisions();
       const collidingIds = new Set();
@@ -3615,7 +3661,7 @@
             : col.dates.join(', ');
             
           details.innerHTML = `
-            <span>Wann: ${DAYS_DE[col.m1.lektionDayOfWeek]}s, ${minutesToTimeString(col.overlapStart)}-${minutesToTimeString(col.overlapEnd)}</span>
+            <span>Wann: ${DAYS_DE[col.overlapDay] || col.overlapDay}s, ${minutesToTimeString(col.overlapStart)}-${minutesToTimeString(col.overlapEnd)}</span>
             <span>Termine: ${datesSample}</span>
           `;
           li.appendChild(details);
@@ -3625,89 +3671,100 @@
         banner.style.display = 'none';
       }
       
-      // Arrange timetable items in columns (detecting overlaps for sub-column rendering)
+      // Arrange timetable items in columns (detecting overlaps for sub-column rendering).
+      // Einheit ist der Slot (ein Wochentag-Zeit-Block eines Moduls): Mehrtages-Module
+      // erscheinen so in mehreren Spalten, Mehrzeit-Module mit korrekter Zeit pro Tag.
       const dayColumns = {};
       days.forEach(day => dayColumns[day] = []);
-      
-      schedModules.forEach(m => {
-        if (dayColumns[m.lektionDayOfWeek]) {
-          dayColumns[m.lektionDayOfWeek].push(m);
-        }
+
+      selected.forEach(m => {
+        m.slots.forEach(slot => {
+          if (slot.timeStartMin === null || slot.timeEndMin === null) return;
+          if (dayColumns[slot.dayName]) {
+            dayColumns[slot.dayName].push({ m, slot });
+          }
+        });
       });
-      
-      // For each day, lay out modules using column-packing algorithm
+
+      // For each day, lay out slots using column-packing algorithm
       days.forEach((day, dayIndex) => {
-        const dayModules = dayColumns[day];
-        dayModules.sort((a, b) => a.timeStartMin - b.timeStartMin);
-        
+        const dayEntries = dayColumns[day];
+        dayEntries.sort((a, b) => a.slot.timeStartMin - b.slot.timeStartMin);
+
         const columns = [];
-        
-        dayModules.forEach(m => {
+
+        dayEntries.forEach(entry => {
           let placed = false;
           for (let c = 0; c < columns.length; c++) {
             const lastInCol = columns[c][columns[c].length - 1];
-            if (m.timeStartMin >= lastInCol.timeEndMin) {
-              columns[c].push(m);
+            if (entry.slot.timeStartMin >= lastInCol.slot.timeEndMin) {
+              columns[c].push(entry);
               placed = true;
               break;
             }
           }
           if (!placed) {
-            columns.push([m]);
+            columns.push([entry]);
           }
         });
-        
-        // Render each module in this day
-        columns.forEach((colModules, colIdx) => {
-          colModules.forEach(m => {
+
+        // Render each slot in this day
+        columns.forEach((colEntries, colIdx) => {
+          colEntries.forEach(({ m, slot }) => {
             const hasCol = collidingIds.has(m.planSemesterModulId);
-            const startMin = m.timeStartMin;
-            const endMin = m.timeEndMin;
-            
+            const startMin = slot.timeStartMin;
+            const endMin = slot.timeEndMin;
+
             const calendarStart = 480;
             const calendarEnd = 1320;
             const totalMinutes = calendarEnd - calendarStart;
-            
+
             if (startMin < calendarStart || endMin > calendarEnd) {
               return;
             }
-            
+
             const topPct = ((startMin - calendarStart) / totalMinutes) * 100;
             const heightPct = ((endMin - startMin) / totalMinutes) * 100;
-            
+
             const colWidth = 100 / numDays;
             const dayLeft = dayIndex * colWidth;
-            
+
             const subColWidth = colWidth / columns.length;
             const leftPct = dayLeft + (colIdx * subColWidth);
-            
+
             const el = document.createElement('div');
             el.className = `calendar-item ${hasCol ? 'has-collision' : ''}`;
             el.style.top = `${topPct}%`;
             el.style.height = `${heightPct}%`;
             el.style.left = `${leftPct}%`;
             el.style.width = `${subColWidth - 0.2}%`;
-            
+
             el.onclick = () => openDetailsModal(m);
-            
+
+            // Datumsspanne dieses Slots (nicht des ganzen Moduls)
             let dateStr = '';
-            if (m.lektionFirstDate && m.lektionLastDate) {
-              const cleanDate = (dStr) => {
-                if (!dStr) return '';
-                const parts = dStr.split('.');
-                if (parts.length >= 2) return `${parts[0]}.${parts[1]}.`;
-                return dStr;
-              };
-              dateStr = `${cleanDate(m.lektionFirstDate)} - ${cleanDate(m.lektionLastDate)}`;
+            const cleanDate = (dStr) => {
+              if (!dStr) return '';
+              const parts = dStr.split('.');
+              if (parts.length >= 2) return `${parts[0]}.${parts[1]}.`;
+              return dStr;
+            };
+            if (slot.dates.length > 0) {
+              const sorted = [...slot.dates].sort((d1, d2) => parseGermanDate(d1) - parseGermanDate(d2));
+              const first = cleanDate(sorted[0]);
+              const last = cleanDate(sorted[sorted.length - 1]);
+              dateStr = first === last ? first : `${first} - ${last}`;
             }
-            
+
+            const timeStr = `${minutesToTimeString(startMin)}-${minutesToTimeString(endMin)}`;
+
             el.innerHTML = `
               <div class="calendar-item-title" title="${m.title}">${hasCol ? '⚠️ ' : ''}${m.title}</div>
-              <div class="calendar-item-time">${m.lektionTimeFrom}-${m.lektionTimeTo}</div>
+              <div class="calendar-item-time">${timeStr}</div>
               ${dateStr ? `<div class="calendar-item-date" style="font-size: 0.6875rem; opacity: 0.85; font-weight: 500;">${dateStr}</div>` : ''}
-              <div class="calendar-item-room" title="Raum">${m.lektionRooms || '-'}</div>
+              <div class="calendar-item-room" title="Raum">${slot.room || m.lektionRooms || '-'}</div>
             `;
-            
+
             container.appendChild(el);
           });
         });
@@ -3753,7 +3810,7 @@
         ectsSpan.style.color = 'var(--success)';
         
         const timeSpan = document.createElement('span');
-        timeSpan.textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek].slice(0,2)} ${m.lektionTimeFrom}` : 'Unregelmässig';
+        timeSpan.textContent = formatSlots(m, true);
         
         meta.appendChild(hsSpan);
         meta.appendChild(ectsSpan);
@@ -3856,7 +3913,7 @@
           } else if (row.key === 'lang') {
             td.textContent = m.detectedLang;
           } else if (row.key === 'daytime') {
-            td.textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek] || m.lektionDayOfWeek} ${m.lektionTimeFrom}-${m.lektionTimeTo}` : 'Unregelmässig';
+            td.textContent = formatSlots(m);
           } else if (row.key === 'dates') {
             td.textContent = m.lektionFirstDate ? `${m.lektionFirstDate} bis ${m.lektionLastDate} (${m.datesArray.length} Termine)` : 'Keine Daten';
           } else if (row.key === 'rooms') {
@@ -3951,7 +4008,7 @@
       // Metadata
       document.getElementById('modal-meta-teachers').textContent = m.detailedLecturers || m.teachers || '-';
       document.getElementById('modal-meta-rooms').textContent = m.lektionRooms || '-';
-      document.getElementById('modal-meta-time').textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek]}s, ${m.lektionTimeFrom}-${m.lektionTimeTo}` : 'Unregelmässig';
+      document.getElementById('modal-meta-time').textContent = formatSlots(m);
       document.getElementById('modal-meta-dates').textContent = m.lektionFirstDate ? `${m.lektionFirstDate} bis ${m.lektionLastDate}` : '-';
       
       // Helper to set field
@@ -4077,6 +4134,29 @@
       const h = Math.floor(mins / 60);
       const m = mins % 60;
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+
+    // Kompakte Tag/Zeit-Zusammenfassung aus m.slots. Gleiche Zeiten werden zu
+    // einer Tagesgruppe zusammengefasst (z.B. "Mo, Di, Mi 08:00-17:00").
+    // short=true -> 2-Buchstaben-Tageskürzel. Ohne Sitzungen -> "Unregelmässig".
+    function formatSlots(m, short = false) {
+      if (!m.slots || m.slots.length === 0) return 'Unregelmässig';
+      const dayLabel = d => short ? (DAYS_DE[d] || d).slice(0, 2) : (DAYS_DE[d] || d);
+      const byTime = new Map();
+      m.slots.forEach(s => {
+        const t = (s.timeStartMin !== null && s.timeEndMin !== null)
+          ? `${minutesToTimeString(s.timeStartMin)}-${minutesToTimeString(s.timeEndMin)}`
+          : '';
+        if (!byTime.has(t)) byTime.set(t, []);
+        if (!byTime.get(t).includes(s.dayName)) byTime.get(t).push(s.dayName);
+      });
+      const parts = [];
+      byTime.forEach((dayNames, t) => {
+        const ordered = DAYS_ORDER.filter(d => dayNames.includes(d));
+        const daysStr = ordered.map(dayLabel).join(', ');
+        parts.push(t ? `${daysStr} ${t}` : daysStr);
+      });
+      return parts.join(' · ');
     }
     
     function formatInputDate(dateObj) {
