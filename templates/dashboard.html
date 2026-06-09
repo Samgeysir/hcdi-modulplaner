@@ -1253,7 +1253,40 @@
       box-shadow: var(--shadow-md);
       background: rgba(99, 102, 241, 0.25);
     }
-    
+
+    .unplaced-chip {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.125rem;
+      padding: 0.4rem 0.65rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card, rgba(255, 255, 255, 0.03));
+      color: var(--text-primary);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: var(--transition-fast);
+      max-width: 100%;
+    }
+    .unplaced-chip:hover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.12);
+    }
+    .unplaced-chip-title {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 260px;
+    }
+    .unplaced-chip-reason {
+      font-size: 0.6875rem;
+      color: var(--text-secondary);
+    }
+
     .calendar-item.has-collision {
       background: rgba(239, 68, 68, 0.15);
       border-color: rgba(239, 68, 68, 0.6);
@@ -2042,6 +2075,16 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span><strong>Hinweis zur Darstellung:</strong> Wenn sich Kurse im Kalender eine Spalte teilen, aber keine rote Kollisionswarnung angezeigt wird, finden sie an unterschiedlichen Semesterdaten statt (siehe Datumsangaben im Block).</span>
+          </div>
+
+          <div id="unplaced-modules-section" style="display: none; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+            <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.625rem; display: flex; align-items: flex-start; gap: 0.5rem;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 1px; color: var(--accent);">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span><strong>Nicht im Wochenplan dargestellt:</strong> Diese ausgewählten Module haben keine oder unvollständige Tag-/Zeitangaben und lassen sich nicht im Raster platzieren. Klicke ein Modul für die Detailansicht.</span>
+            </div>
+            <div id="unplaced-modules-list" style="display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
           </div>
         </div>
         
@@ -3686,6 +3729,9 @@
         });
       });
 
+      // Track which modules actually get a block in the calendar (for the "nicht platziert"-Liste).
+      const placedIds = new Set();
+
       // For each day, lay out slots using column-packing algorithm
       days.forEach((day, dayIndex) => {
         const dayEntries = dayColumns[day];
@@ -3766,11 +3812,51 @@
             `;
 
             container.appendChild(el);
+            placedIds.add(m.planSemesterModulId);
           });
         });
       });
+
+      renderUnplacedModules(selected, placedIds);
     }
-    
+
+    // Zeigt ausgewählte Module, die im Kalender NICHT platziert werden konnten
+    // (keine/unvollständige Tag-/Zeitangaben oder Zeit ausserhalb des Rasters).
+    // Klick auf ein Modul öffnet die Detailansicht.
+    function renderUnplacedModules(selected, placedIds) {
+      const section = document.getElementById('unplaced-modules-section');
+      const list = document.getElementById('unplaced-modules-list');
+      list.innerHTML = '';
+
+      const unplaced = selected.filter(m => !placedIds.has(m.planSemesterModulId));
+      if (unplaced.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      section.style.display = 'block';
+
+      unplaced.forEach(m => {
+        let reason;
+        if (!m.slots || m.slots.length === 0) {
+          reason = 'Keine Tag-/Zeitangaben';
+        } else if (m.slots.some(s => s.timeStartMin !== null && s.timeEndMin !== null)) {
+          reason = 'Zeit ausserhalb 08:00–22:00';
+        } else {
+          reason = 'Keine Uhrzeit hinterlegt';
+        }
+
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'unplaced-chip';
+        chip.title = `${m.title} – Details öffnen`;
+        chip.innerHTML =
+          `<span class="unplaced-chip-title">${m.title}</span>` +
+          `<span class="unplaced-chip-reason">${reason}</span>`;
+        chip.onclick = () => openDetailsModal(m);
+        list.appendChild(chip);
+      });
+    }
+
     function renderSelectedList() {
       const container = document.getElementById('selected-modules-list-container');
       container.innerHTML = '';
