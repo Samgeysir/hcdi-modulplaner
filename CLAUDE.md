@@ -88,6 +88,9 @@ git tag v0.2.0                               # neue Version (SemVer, siehe unten
 git push origin v0.2.0                       # löst Build + Release v0.2.0 aus
 ```
 SemVer: Bugfix → `v0.1.1`, abwärtskompatibles Feature → `v0.2.0`, Breaking/1.0 → `v1.0.0`.
+**Test-/Vorab-Release:** Tags mit `-` (z.B. `v0.3.0-beta.1`, `v1.0.0-rc.2`) werden vom
+Workflow **automatisch als GitHub Pre-release** veröffentlicht (`prerelease: ${{ contains(github.ref_name, '-') }}`),
+sodass das stabile Release „Latest" bleibt. Stabile Tags (ohne `-`) bleiben reguläre Releases.
 Tag/Release wieder entfernen: `git tag -d v0.2.0 && git push origin :refs/tags/v0.2.0`.
 Nur lokal (Mac) bauen ohne Release: `./build_mac.command` → `dist/Modulplaner.app`.
 
