@@ -81,6 +81,50 @@ modulplaner_app/
 └── README.md
 ```
 
+## Zusatz-Module (Studiengänge ohne FHNW-API)
+
+Manche Studiengänge pflegen ihre Module **nicht** in der FHNW-Modul-API. Solche Module
+lassen sich ergänzend per JSON-Datei einpflegen — sie erscheinen im Dashboard genau wie
+API-Module (Filter, Stundenplan, Vergleich) und sind mit einem **„Extern"-Badge** markiert.
+
+**Quelle (in dieser Reihenfolge):**
+1. **Online (GitHub):** `data/extra_modules_<Semester>.json` im Repo wird über die
+   GitHub-Raw-URL geladen. Einmal ändern → alle Nutzer:innen haben beim nächsten Öffnen
+   die neuen Daten, **ohne** App-Update oder Neu-Scrape.
+2. **Lokal (Fallback):** dieselbe Datei im App-Ordner unter `data/` — greift offline
+   oder wenn GitHub nicht erreichbar ist.
+
+**Daten per Excel-Vorlage einsammeln (empfohlen):**
+
+Für die Verantwortlichen liegt eine fertige Excel-Vorlage bereit:
+[`tools/Vorlage_Zusatzmodule.xlsx`](tools/Vorlage_Zusatzmodule.xlsx) — mit Anleitungs-Blatt,
+deutschen Spaltentiteln, Pflichtfeld-Markierung und Auswahllisten (Wochentag, Sprache).
+
+1. Vorlage verteilen. Pro Modul eine Zeile ausfüllen; die zwei Beispielzeilen löschen.
+2. Ausgefülltes Excel zurück, dann in JSON umwandeln (braucht `openpyxl`,
+   siehe `requirements-dev.txt`):
+   ```bash
+   python3 tools/xlsx_to_json.py Vorlage_Zusatzmodule.xlsx 26HS
+   # -> schreibt data/extra_modules_26HS.json
+   ```
+3. Die erzeugte `data/extra_modules_<Semester>.json` per `git push` auf `main` **oder**
+   direkt im GitHub-Web hochladen (Datei → Bleistift → Commit). Fertig — kein Rebuild nötig.
+
+> Vorlage neu erzeugen (falls Felder ändern): `python3 tools/build_template.py`.
+
+**Alternativ ohne Vorlage:** JSON direkt pflegen — eine Liste von Objekten, als Beispiel
+dient [`data/extra_modules_26HS.json`](data/extra_modules_26HS.json) (zwei Module).
+
+**Wichtige Felder pro Modul:** `Hochschule`, `title`, `ects`, `studyPrograms`,
+`teachers`, `language`, `courseContent`, `url`. Für den **Stundenplan** zusätzlich:
+`lektionDayOfWeek` (englisch: `Monday`…`Sunday`), `lektionTimeFrom`/`lektionTimeTo`
+(`HH:MM`), `lektionFirstDate`/`lektionLastDate`/`lektionDates` (`TT.MM.JJJJ`,
+`lektionDates` komma-getrennt), `lektionRooms`. Fehlende Felder sind ok (bleiben leer);
+ohne Lektionszeiten erscheint das Modul als „Unregelmässig" (nicht im Kalenderraster).
+
+Andere Repo-/Branch-URL für die Online-Quelle: Umgebungsvariable
+`EXTRA_MODULES_URL_BASE` setzen (zeigt auf den Ordner mit den `extra_modules_*.json`).
+
 ## Eigenständige App selbst bauen
 
 - **macOS:** Doppelklick auf **`build_mac.command`** → erzeugt `dist/Modulplaner.app`.

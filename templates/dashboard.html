@@ -836,7 +836,12 @@
       color: #fcd34d;
       border: 1px solid rgba(245, 158, 11, 0.2);
     }
-    
+    .badge-extra {
+      background: rgba(236, 72, 153, 0.15);
+      color: #f9a8d4;
+      border: 1px solid rgba(236, 72, 153, 0.25);
+    }
+
     .card-title {
       font-size: 1.1rem;
       font-weight: 600;
@@ -3021,7 +3026,15 @@
       hsBadge.className = 'badge badge-hs';
       hsBadge.textContent = m.Hochschule;
       badgeContainer.appendChild(hsBadge);
-      
+
+      if (m.isExtra) {
+        const extraBadge = document.createElement('span');
+        extraBadge.className = 'badge badge-extra';
+        extraBadge.textContent = 'Extern';
+        extraBadge.title = 'Modul ausserhalb der FHNW-Modul-API (manuell gepflegt)';
+        badgeContainer.appendChild(extraBadge);
+      }
+
       const ectsBadge = document.createElement('span');
       ectsBadge.className = 'badge badge-ects';
       ectsBadge.textContent = `${m.ectsNum} ECTS`;
@@ -3924,6 +3937,7 @@
       const badges = document.getElementById('modal-badges');
       let badgesHtml = `
         <span class="badge badge-hs">${m.Hochschule}</span>
+        ${m.isExtra ? '<span class="badge badge-extra" title="Modul ausserhalb der FHNW-Modul-API (manuell gepflegt)">Extern</span>' : ''}
         <span class="badge badge-ects">${m.ectsNum} ECTS</span>
         <span class="badge badge-lang">${m.detectedLang}</span>
       `;

@@ -1,3 +1,7 @@
 # Build-/Entwicklungs-Abhängigkeiten (nicht zur Laufzeit nötig).
 # Verpackt die App zu einer eigenständigen .app/.exe.
 pyinstaller>=6.0.0
+
+# Nur für tools/: Excel-Vorlage erzeugen (build_template.py) und
+# ausgefülltes Excel in data/extra_modules_<sem>.json umwandeln (xlsx_to_json.py).
+openpyxl>=3.1.0
