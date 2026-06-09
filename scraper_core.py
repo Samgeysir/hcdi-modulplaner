@@ -268,7 +268,11 @@ def _enrich_single(module):
 
 
 def enrich_with_details(modules, progress_cb=None):
-    """Reichert alle Module parallel mit Details an. progress_cb(done, total)."""
+    """Reichert alle Module parallel mit Details an. progress_cb(done, total, title).
+
+    Da die Anreicherung parallel läuft (mehrere Worker), ist `title` der Titel
+    des zuletzt fertig geladenen Moduls, nicht „das eine" gerade aktive.
+    """
     total = len(modules)
     done = 0
     with ThreadPoolExecutor(max_workers=DETAIL_WORKERS) as ex:
@@ -281,7 +285,8 @@ def enrich_with_details(modules, progress_cb=None):
                 pass
             done += 1
             if progress_cb:
-                progress_cb(done, total)
+                title = modules[idx].get("title") or ""
+                progress_cb(done, total, title)
     return modules
 
 
@@ -345,9 +350,13 @@ def fetch_all_universities(semester_value, progress_cb=None):
         if not raw:
             continue
 
-        def _cb(done, total, _uni=uni, _i=i):
+        def _cb(done, total, title="", _uni=uni, _i=i):
             if progress_cb:
-                progress_cb("details", done, total, f"Details {_uni} ({_i + 1}/{n_unis})")
+                if title:
+                    msg = f"Geladen: {title} ({_uni}, {_i + 1}/{n_unis})"
+                else:
+                    msg = f"Details {_uni} ({_i + 1}/{n_unis})"
+                progress_cb("details", done, total, msg)
 
         enrich_with_details(raw, progress_cb=_cb)
 
