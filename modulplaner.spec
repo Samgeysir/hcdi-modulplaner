@@ -12,7 +12,8 @@ import sys
 from PyInstaller.utils.hooks import collect_data_files, collect_all
 
 # certifi-Zertifikate mitnehmen (TLS für requests gegen die FHNW-API)
-datas = [("templates", "templates")]
+# data/ = lokaler Fallback für Zusatz-Module (wenn GitHub nicht erreichbar ist).
+datas = [("templates", "templates"), ("data", "data")]
 binaries = []
 hiddenimports = ["certifi"]
 datas += collect_data_files("certifi")

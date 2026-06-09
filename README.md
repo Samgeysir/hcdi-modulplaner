@@ -81,6 +81,36 @@ modulplaner_app/
 └── README.md
 ```
 
+## Zusatz-Module (Studiengänge ohne FHNW-API)
+
+Manche Studiengänge pflegen ihre Module **nicht** in der FHNW-Modul-API. Solche Module
+lassen sich ergänzend per JSON-Datei einpflegen — sie erscheinen im Dashboard genau wie
+API-Module (Filter, Stundenplan, Vergleich) und sind mit einem **„Extern"-Badge** markiert.
+
+**Quelle (in dieser Reihenfolge):**
+1. **Online (GitHub):** `data/extra_modules_<Semester>.json` im Repo wird über die
+   GitHub-Raw-URL geladen. Einmal ändern → alle Nutzer:innen haben beim nächsten Öffnen
+   die neuen Daten, **ohne** App-Update oder Neu-Scrape.
+2. **Lokal (Fallback):** dieselbe Datei im App-Ordner unter `data/` — greift offline
+   oder wenn GitHub nicht erreichbar ist.
+
+**Daten pflegen (z.B. aus Excel):**
+1. Module in Excel/Google Sheets erfassen, nach **JSON** exportieren (eine Liste von
+   Objekten). Als Vorlage dient `data/extra_modules_26HS.json` (zwei Beispiel-Module).
+2. Datei `data/extra_modules_<Semester>.json` nennen (Semester wie im Cache, z.B. `26HS`).
+3. Per `git push` auf `main` **oder** direkt im GitHub-Web hochladen (Datei → Bleistift →
+   Commit). Fertig — kein Rebuild nötig.
+
+**Wichtige Felder pro Modul:** `Hochschule`, `title`, `ects`, `studyPrograms`,
+`teachers`, `language`, `courseContent`, `url`. Für den **Stundenplan** zusätzlich:
+`lektionDayOfWeek` (englisch: `Monday`…`Sunday`), `lektionTimeFrom`/`lektionTimeTo`
+(`HH:MM`), `lektionFirstDate`/`lektionLastDate`/`lektionDates` (`TT.MM.JJJJ`,
+`lektionDates` komma-getrennt), `lektionRooms`. Fehlende Felder sind ok (bleiben leer);
+ohne Lektionszeiten erscheint das Modul als „Unregelmässig" (nicht im Kalenderraster).
+
+Andere Repo-/Branch-URL für die Online-Quelle: Umgebungsvariable
+`EXTRA_MODULES_URL_BASE` setzen (zeigt auf den Ordner mit den `extra_modules_*.json`).
+
 ## Eigenständige App selbst bauen
 
 - **macOS:** Doppelklick auf **`build_mac.command`** → erzeugt `dist/Modulplaner.app`.

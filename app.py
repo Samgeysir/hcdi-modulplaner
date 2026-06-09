@@ -28,6 +28,7 @@ URL = f"http://{HOST}:{PORT}"
 from flask import Flask, jsonify, request, send_from_directory
 
 import scraper_core
+import extra_modules
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -143,7 +144,14 @@ def api_modules():
     path = _cache_path(semester)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
-            return app.response_class(f.read(), mimetype="application/json")
+            base = json.load(f)
+        # Zusatzmodule (nicht-API-Studiengänge) ergänzend anhängen. Dedup per
+        # planSemesterModulId — API-Module gewinnen bei Kollision.
+        extra = extra_modules.load_extra_modules(semester)
+        if extra:
+            seen = {m.get("planSemesterModulId") for m in base if m.get("planSemesterModulId")}
+            base.extend(m for m in extra if m.get("planSemesterModulId") not in seen)
+        return jsonify(base)
 
     # Noch kein Cache -> Hintergrund-Scrape anstossen, 202 zurück
     _start_load_if_needed(semester)

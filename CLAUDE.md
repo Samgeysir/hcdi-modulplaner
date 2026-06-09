@@ -40,6 +40,8 @@ Kein pandas/openpyxl/streamlit mehr — die App braucht nur Flask + requests.
 ```
 app.py                   — Flask-Server: Dashboard ausliefern + JSON-API + Hintergrund-Scrape + Cache
 scraper_core.py          — Reine FHNW-Scraping-Logik (ohne UI), liefert Dashboard-Schema
+extra_modules.py         — Lädt Zusatz-Module (nicht-API-Studiengänge) aus JSON (GitHub-Raw + lokaler Fallback)
+data/                    — Getrackte Zusatz-Module: extra_modules_<Semester>.json (Schema-Vorlage/Fallback)
 templates/dashboard.html — Dashboard-Frontend (HTML/CSS/JS), holt Daten per fetch vom Backend
 cache/                   — Pro-Semester JSON-Cache: modules_<Semester>.json (in .gitignore)
 requirements.txt         — Laufzeit-Abhängigkeiten (flask, requests)
@@ -100,7 +102,7 @@ Hintergrund-Scrapes laufen in `threading.Thread` (daemon). Ergebnis wird nach
 |---|---|---|
 | GET | `/` | Liefert `templates/dashboard.html` |
 | GET | `/api/semesters` | `[{value, label}]` — verfügbare Semester (aus Facetten) |
-| GET | `/api/modules?semester=<v>` | Dashboard-JSON aus Cache (**200**) oder startet Scrape (**202** `{state:loading}`) |
+| GET | `/api/modules?semester=<v>` | Dashboard-JSON: Cache **+ Zusatz-Module** gemerged (**200**) oder startet Scrape (**202** `{state:loading}`) |
 | GET | `/api/status?semester=<v>` | `{state, phase, done, total, message, count}` |
 | POST | `/api/refresh?semester=<v>` | Löscht Cache, startet Neu-Scrape (**202**) |
 
@@ -121,6 +123,23 @@ Portiert aus `module_scraper_10/fhnw_module_exporter.py`, von Streamlit entkoppe
 - `fetch_all_universities(semester_value, progress_cb)` → orchestriert alle Hochschulen +
   Details, dedupliziert auf `planSemesterModulId`, gibt Liste von Dashboard-Datensätzen zurück.
   `progress_cb(phase, done, total, message)`.
+
+### Zusatz-Module (`extra_modules.py`)
+Module von Studiengängen, die **nicht** über die FHNW-API verfügbar sind. Werden in
+`/api/modules` **zur Auslieferungszeit** an die gecachte API-Liste angehängt (nicht in den
+Cache gebacken) → eine Änderung der Quelle wirkt sofort beim nächsten Laden, **ohne**
+Re-Scrape. Quelle: erst GitHub-Raw (`EXTRA_MODULES_URL_BASE` + `extra_modules_<sem>.json`,
+Semester wie `_cache_path` bereinigt), dann lokaler Fallback `data/extra_modules_<sem>.json`
+(build-tauglich via `_resource_dir()`), sonst `[]`.
+
+- `load_extra_modules(semester_value)` → normalisierte Datensätze (In-Memory-TTL ~300 s).
+- `normalize_record(raw, index)` → füllt alle vom Frontend gelesenen Felder
+  (`SEARCH_FIELDS + DETAIL_FIELDS + LEKTION_FIELDS + Hochschule/url/detailedLecturers`),
+  joint Listen zu `", "`, bereinigt HTML via `scraper_core.clean_html`, vergibt leere
+  `planSemesterModulId` als `EXTRA_<index>`, setzt `isExtra: true`.
+- Dedup beim Merge in `app.api_modules` per `planSemesterModulId` (API-Modul gewinnt).
+- Frontend: `m.isExtra` → kleiner **„Extern"-Badge** (`.badge-extra`) in Karte + Detail-Modal.
+  Alle anderen Funktionen greifen automatisch, weil das Schema identisch ist.
 
 ### Frontend (`templates/dashboard.html`)
 Identisches Design/CSS wie das alte Dashboard. Nur die Datenanbindung wurde getauscht:
