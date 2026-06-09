@@ -18,11 +18,11 @@
     "assessment": "Mündliche Prüfung",
     "url": "www.fhnw.ch",
     "lektionDayOfWeek": "Tuesday",
-    "lektionTimeFrom": "13:15:00",
-    "lektionTimeTo": "17:00:00",
+    "lektionTimeFrom": "13:15",
+    "lektionTimeTo": "17:00",
     "lektionFirstDate": "",
     "lektionLastDate": "",
-    "lektionDates": "14.09.26, 15.09.2026",
+    "lektionDates": "14.09.2026, 15.09.2026",
     "lektionRooms": "",
     "detailedLecturers": "Jan Neuenschwander"
   }

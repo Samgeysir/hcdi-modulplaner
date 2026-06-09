@@ -70,12 +70,38 @@ def _as_text(v):
 
 
 def _norm_date(v):
-    """Excel-Datum/Text -> TT.MM.JJJJ."""
+    """Excel-Datum/Text -> TT.MM.JJJJ (auch 2-stellige Jahre -> 20JJ)."""
+    if v is None:
+        return ""
+    if hasattr(v, "strftime") and hasattr(v, "year"):
+        return v.strftime("%d.%m.%Y")
+    s = str(v).strip()
+    parts = s.split(".")
+    if len(parts) == 3:
+        d, m, y = (p.strip() for p in parts)
+        if len(y) == 2:
+            y = "20" + y
+        try:
+            return f"{int(d):02d}.{int(m):02d}.{y}"
+        except ValueError:
+            return s
+    return s
+
+
+def _norm_time(v):
+    """Excel-Zeit/Text -> HH:MM (Sekunden werden entfernt)."""
     if v is None:
         return ""
     if hasattr(v, "strftime"):
-        return v.strftime("%d.%m.%Y")
-    return str(v).strip()
+        return v.strftime("%H:%M")
+    s = str(v).strip()
+    parts = s.split(":")
+    if len(parts) >= 2:
+        try:
+            return f"{int(parts[0]):02d}:{int(parts[1]):02d}"
+        except ValueError:
+            return s[:5]
+    return s
 
 
 def convert(xlsx_path, semester, out_dir):
@@ -134,11 +160,13 @@ def convert(xlsx_path, semester, out_dir):
                     rec["ects"] = _as_text(raw)
             elif key == "lektionDayOfWeek":
                 rec[key] = WEEKDAY_DE_EN.get(_as_text(raw).lower(), _as_text(raw))
+            elif key in ("lektionTimeFrom", "lektionTimeTo"):
+                rec[key] = _norm_time(raw)
             elif key in ("lektionFirstDate", "lektionLastDate"):
                 rec[key] = _norm_date(raw)
             elif key == "lektionDates":
                 txt = _as_text(raw)
-                parts = [p.strip() for p in txt.replace(";", ",").split(",") if p.strip()]
+                parts = [_norm_date(p.strip()) for p in txt.replace(";", ",").split(",") if p.strip()]
                 rec[key] = ", ".join(parts)
             else:
                 rec[key] = _as_text(raw)
