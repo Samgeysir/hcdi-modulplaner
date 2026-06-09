@@ -268,7 +268,11 @@ def _enrich_single(module):
 
 
 def enrich_with_details(modules, progress_cb=None):
-    """Reichert alle Module parallel mit Details an. progress_cb(done, total)."""
+    """Reichert alle Module parallel mit Details an. progress_cb(done, total, title).
+
+    Da die Anreicherung parallel läuft (mehrere Worker), ist `title` der Titel
+    des zuletzt fertig geladenen Moduls, nicht „das eine" gerade aktive.
+    """
     total = len(modules)
     done = 0
     with ThreadPoolExecutor(max_workers=DETAIL_WORKERS) as ex:
@@ -281,7 +285,8 @@ def enrich_with_details(modules, progress_cb=None):
                 pass
             done += 1
             if progress_cb:
-                progress_cb(done, total)
+                title = modules[idx].get("title") or ""
+                progress_cb(done, total, title)
     return modules
 
 
@@ -318,7 +323,9 @@ def fetch_all_universities(semester_value, progress_cb=None):
     """Lädt alle Hochschulen eines Semesters mit Details und gibt eine
     deduplizierte Liste von Dashboard-Datensätzen zurück.
 
-    progress_cb(phase, done, total, message) — optional, für Live-Fortschritt.
+    progress_cb(phase, done, total, message, title="") — optional, für Live-
+    Fortschritt. `title` ist in der details-Phase der blanke Modul-Titel des
+    zuletzt fertig geladenen Moduls (für die Live-Liste), sonst leer.
     """
     universities, semesters, _ = load_available_facets()
 
@@ -345,9 +352,14 @@ def fetch_all_universities(semester_value, progress_cb=None):
         if not raw:
             continue
 
-        def _cb(done, total, _uni=uni, _i=i):
+        def _cb(done, total, title="", _uni=uni, _i=i):
             if progress_cb:
-                progress_cb("details", done, total, f"Details {_uni} ({_i + 1}/{n_unis})")
+                if title:
+                    msg = f"Geladen: {title} ({_uni}, {_i + 1}/{n_unis})"
+                else:
+                    msg = f"Details {_uni} ({_i + 1}/{n_unis})"
+                # 5. Arg: blanker Titel für die Live-Liste im Ladescreen
+                progress_cb("details", done, total, msg, title)
 
         enrich_with_details(raw, progress_cb=_cb)
 

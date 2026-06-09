@@ -258,6 +258,52 @@
       border-radius: 99px;
       transition: width 0.4s ease;
     }
+    .load-feed {
+      margin-top: 1rem;
+      max-height: 168px;
+      overflow: hidden;
+      display: none;
+      text-align: left;
+      -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+    }
+    .feed-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.28rem 0.1rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary, #9ca3af);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-check {
+      flex: 0 0 auto;
+      width: 15px;
+      height: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.18);
+      color: var(--accent, #6366f1);
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+    .feed-title {
+      flex: 1 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .feed-item-new {
+      animation: feed-in 0.35s ease;
+    }
+    .feed-item-new .feed-title { color: var(--text-primary, #f3f4f6); }
+    @keyframes feed-in {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     .load-hint {
       margin-top: 1rem;
       font-size: 0.78rem;
@@ -1708,6 +1754,7 @@
       <div class="load-spinner"></div>
       <div id="load-message" class="load-message">Lade Module …</div>
       <div class="load-track"><div id="load-bar" class="load-bar"></div></div>
+      <div id="load-feed" class="load-feed"></div>
       <p class="load-hint">Erstes Laden aller Hochschulen mit Details kann einige Minuten dauern. Danach kommen die Daten aus dem Cache.</p>
     </div>
   </div>
@@ -2210,6 +2257,46 @@
       if (bar) bar.style.width = (pct === undefined || pct === null) ? '100%' : (pct + '%');
     }
 
+    // Kurze Live-Liste der zuletzt geladenen Module unter dem Ladebalken.
+    // Nur ein Gefühl, nicht vollständig: gesampelt aus dem aktuellen st.title,
+    // gepuffert auf die letzten FEED_MAX Einträge (neueste zuerst).
+    const FEED_MAX = 5;
+    let _feedBuffer = [];
+    function resetLoadFeed() {
+      _feedBuffer = [];
+      const feed = document.getElementById('load-feed');
+      if (feed) { feed.innerHTML = ''; feed.style.display = 'none'; }
+    }
+    function renderLoadFeed(title) {
+      const feed = document.getElementById('load-feed');
+      if (!feed) return;
+      const t = (title || '').trim();
+      let isNew = false;
+      if (t && t !== _feedBuffer[0]) {
+        _feedBuffer.unshift(t);            // neueste vorne
+        _feedBuffer = _feedBuffer.slice(0, FEED_MAX);
+        isNew = true;
+      }
+      if (_feedBuffer.length === 0) { feed.style.display = 'none'; return; }
+      feed.style.display = 'block';
+      const frag = document.createDocumentFragment();
+      _feedBuffer.forEach((name, idx) => {
+        const row = document.createElement('div');
+        row.className = 'feed-item' + (idx === 0 && isNew ? ' feed-item-new' : '');
+        const check = document.createElement('span');
+        check.className = 'feed-check';
+        check.textContent = '✓';
+        const label = document.createElement('span');
+        label.className = 'feed-title';
+        label.textContent = name;
+        row.appendChild(check);
+        row.appendChild(label);
+        frag.appendChild(row);
+      });
+      feed.innerHTML = '';
+      feed.appendChild(frag);
+    }
+
     async function pollStatusUntilReady(semester) {
       while (true) {
         await new Promise(r => setTimeout(r, 1500));
@@ -2218,15 +2305,24 @@
           st = await (await fetch('/api/status?semester=' + encodeURIComponent(semester))).json();
         } catch (e) { continue; }
         const pct = (st.total && st.total > 0) ? Math.round((st.done / st.total) * 100) : null;
-        const phaseLabel = st.phase === 'details' ? 'Details laden' : (st.phase === 'search' ? 'Module suchen' : '');
-        showOverlay(true, (phaseLabel ? phaseLabel + ' — ' : '') + (st.message || 'Lade …'), pct);
+        let header;
+        if (st.phase === 'details') {
+          header = 'Module laden' + (st.total ? ` — ${st.done}/${st.total}` : '');
+        } else if (st.phase === 'search') {
+          header = st.message || 'Module suchen …';
+        } else {
+          header = st.message || 'Lade …';
+        }
+        showOverlay(true, header, pct);
+        renderLoadFeed(st.title);
         if (st.state === 'ready') return true;
-        if (st.state === 'error') { showOverlay(true, st.message || 'Fehler beim Laden', null); return false; }
+        if (st.state === 'error') { resetLoadFeed(); showOverlay(true, st.message || 'Fehler beim Laden', null); return false; }
       }
     }
 
     async function loadSemester(semester) {
       currentSemester = semester;
+      resetLoadFeed();
       showOverlay(true, 'Lade Module …', null);
       try {
         let resp = await fetch('/api/modules?semester=' + encodeURIComponent(semester));
@@ -2350,6 +2446,7 @@
 
     async function refreshData() {
       if (!currentSemester) return;
+      resetLoadFeed();
       showOverlay(true, 'Aktualisiere Daten …', null);
       await fetch('/api/refresh?semester=' + encodeURIComponent(currentSemester), { method: 'POST' });
       const ok = await pollStatusUntilReady(currentSemester);
