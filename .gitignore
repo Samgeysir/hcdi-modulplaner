@@ -22,3 +22,6 @@ cache/*.json
 # Betriebssystem
 .DS_Store
 Thumbs.db
+
+# Excel-Temp-/Lock-Dateien (entstehen, solange eine Mappe geöffnet ist)
+~$*.xlsx

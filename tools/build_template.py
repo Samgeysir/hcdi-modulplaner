@@ -19,6 +19,7 @@ COLUMNS = [
     ("Modultitel (Deutsch)", "title", True, 32, "Testmodul A (extern)", "Testmodul B (extern, ohne feste Zeit)", "Voller Modultitel auf Deutsch."),
     ("ECTS", "ects", True, 8, 3, 6, "Anzahl ECTS-Kreditpunkte (Zahl)."),
     ("Studiengang(e)", "studyPrograms", True, 28, "Externer Beispiel-Studiengang", "Externer Beispiel-Studiengang", "Studiengang(e), zu denen das Modul gehört. Mehrere mit Komma trennen."),
+    ("Modulnummer", "planSemesterModulId", False, 18, "EXT-INF-101", "EXT-INF-102", "Empfohlen. Eindeutige Modulnummer/-kennung; wird im Dashboard als Modul-ID verwendet. Leer lassen -> automatische ID."),
     ("Modultitel (Englisch)", "titleEN", False, 32, "Test Module A (external)", "Test Module B (external)", "Optional. Englischer Titel."),
     ("Unterrichtssprache", "language", False, 16, "Deutsch", "Deutsch", "Deutsch / Englisch / Bilingual."),
     ("Dozierende", "teachers", False, 24, "Vorname Nachname", "Andere Person", "Name(n) der Dozierenden. Mehrere mit Komma trennen."),

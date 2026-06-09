@@ -26,6 +26,7 @@ HEADER_TO_KEY = {
     "Modultitel (Deutsch)": "title",
     "ECTS": "ects",
     "Studiengang(e)": "studyPrograms",
+    "Modulnummer": "planSemesterModulId",
     "Modultitel (Englisch)": "titleEN",
     "Unterrichtssprache": "language",
     "Dozierende": "teachers",
