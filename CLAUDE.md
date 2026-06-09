@@ -74,6 +74,21 @@ doppelklickbaren App. pywebview wird via `collect_all("webview")` vollständig e
   Plattformen via GitHub Actions (`workflow_dispatch` oder Tag `v*`). Apps sind **unsigniert**
   (Gatekeeper/SmartScreen-Hinweis beim Erststart).
 
+### Release bauen / Version erhöhen
+Die Versionsnummer steht **nirgends fest verdrahtet** — sie ist der **Git-Tag**, den du pushst.
+`.github/workflows/build.yml` triggert bei Push eines Tags `v*`, baut Mac-`.app` + Windows-`.exe`
+und veröffentlicht sie via `softprops/action-gh-release` als Release mit dem Tag-Namen als Version.
+
+Ablauf für ein neues Release (immer **nach** dem Merge auf `main`):
+```bash
+git checkout main && git pull origin main   # aktuellen Stand holen
+git tag v0.2.0                               # neue Version (SemVer, siehe unten)
+git push origin v0.2.0                       # löst Build + Release v0.2.0 aus
+```
+SemVer: Bugfix → `v0.1.1`, abwärtskompatibles Feature → `v0.2.0`, Breaking/1.0 → `v1.0.0`.
+Tag/Release wieder entfernen: `git tag -d v0.2.0 && git push origin :refs/tags/v0.2.0`.
+Nur lokal (Mac) bauen ohne Release: `./build_mac.command` → `dist/Modulplaner.app`.
+
 ## Architektur
 
 ### Backend (`app.py`)
