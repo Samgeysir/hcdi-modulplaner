@@ -94,12 +94,26 @@ API-Module (Filter, Stundenplan, Vergleich) und sind mit einem **„Extern"-Badg
 2. **Lokal (Fallback):** dieselbe Datei im App-Ordner unter `data/` — greift offline
    oder wenn GitHub nicht erreichbar ist.
 
-**Daten pflegen (z.B. aus Excel):**
-1. Module in Excel/Google Sheets erfassen, nach **JSON** exportieren (eine Liste von
-   Objekten). Als Vorlage dient `data/extra_modules_26HS.json` (zwei Beispiel-Module).
-2. Datei `data/extra_modules_<Semester>.json` nennen (Semester wie im Cache, z.B. `26HS`).
-3. Per `git push` auf `main` **oder** direkt im GitHub-Web hochladen (Datei → Bleistift →
-   Commit). Fertig — kein Rebuild nötig.
+**Daten per Excel-Vorlage einsammeln (empfohlen):**
+
+Für die Verantwortlichen liegt eine fertige Excel-Vorlage bereit:
+[`tools/Vorlage_Zusatzmodule.xlsx`](tools/Vorlage_Zusatzmodule.xlsx) — mit Anleitungs-Blatt,
+deutschen Spaltentiteln, Pflichtfeld-Markierung und Auswahllisten (Wochentag, Sprache).
+
+1. Vorlage verteilen. Pro Modul eine Zeile ausfüllen; die zwei Beispielzeilen löschen.
+2. Ausgefülltes Excel zurück, dann in JSON umwandeln (braucht `openpyxl`,
+   siehe `requirements-dev.txt`):
+   ```bash
+   python3 tools/xlsx_to_json.py Vorlage_Zusatzmodule.xlsx 26HS
+   # -> schreibt data/extra_modules_26HS.json
+   ```
+3. Die erzeugte `data/extra_modules_<Semester>.json` per `git push` auf `main` **oder**
+   direkt im GitHub-Web hochladen (Datei → Bleistift → Commit). Fertig — kein Rebuild nötig.
+
+> Vorlage neu erzeugen (falls Felder ändern): `python3 tools/build_template.py`.
+
+**Alternativ ohne Vorlage:** JSON direkt pflegen — eine Liste von Objekten, als Beispiel
+dient [`data/extra_modules_26HS.json`](data/extra_modules_26HS.json) (zwei Module).
 
 **Wichtige Felder pro Modul:** `Hochschule`, `title`, `ects`, `studyPrograms`,
 `teachers`, `language`, `courseContent`, `url`. Für den **Stundenplan** zusätzlich:
