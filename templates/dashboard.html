@@ -3115,10 +3115,7 @@
       `, teachersVal));
       
       // Day & Time
-      let dayTimeStr = 'Unregelmässig / Keine festen Zeiten';
-      if (m.lektionDayOfWeek && m.lektionTimeFrom && m.lektionTimeTo) {
-        dayTimeStr = `${DAYS_DE[m.lektionDayOfWeek] || m.lektionDayOfWeek} • ${m.lektionTimeFrom} - ${m.lektionTimeTo}`;
-      }
+      const dayTimeStr = (m.slots && m.slots.length) ? formatSlots(m) : 'Unregelmässig / Keine festen Zeiten';
       meta.appendChild(createMetaItem(`
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -3813,7 +3810,7 @@
         ectsSpan.style.color = 'var(--success)';
         
         const timeSpan = document.createElement('span');
-        timeSpan.textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek].slice(0,2)} ${m.lektionTimeFrom}` : 'Unregelmässig';
+        timeSpan.textContent = formatSlots(m, true);
         
         meta.appendChild(hsSpan);
         meta.appendChild(ectsSpan);
@@ -3916,7 +3913,7 @@
           } else if (row.key === 'lang') {
             td.textContent = m.detectedLang;
           } else if (row.key === 'daytime') {
-            td.textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek] || m.lektionDayOfWeek} ${m.lektionTimeFrom}-${m.lektionTimeTo}` : 'Unregelmässig';
+            td.textContent = formatSlots(m);
           } else if (row.key === 'dates') {
             td.textContent = m.lektionFirstDate ? `${m.lektionFirstDate} bis ${m.lektionLastDate} (${m.datesArray.length} Termine)` : 'Keine Daten';
           } else if (row.key === 'rooms') {
@@ -4011,7 +4008,7 @@
       // Metadata
       document.getElementById('modal-meta-teachers').textContent = m.detailedLecturers || m.teachers || '-';
       document.getElementById('modal-meta-rooms').textContent = m.lektionRooms || '-';
-      document.getElementById('modal-meta-time').textContent = m.lektionDayOfWeek ? `${DAYS_DE[m.lektionDayOfWeek]}s, ${m.lektionTimeFrom}-${m.lektionTimeTo}` : 'Unregelmässig';
+      document.getElementById('modal-meta-time').textContent = formatSlots(m);
       document.getElementById('modal-meta-dates').textContent = m.lektionFirstDate ? `${m.lektionFirstDate} bis ${m.lektionLastDate}` : '-';
       
       // Helper to set field
@@ -4137,6 +4134,29 @@
       const h = Math.floor(mins / 60);
       const m = mins % 60;
       return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+
+    // Kompakte Tag/Zeit-Zusammenfassung aus m.slots. Gleiche Zeiten werden zu
+    // einer Tagesgruppe zusammengefasst (z.B. "Mo, Di, Mi 08:00-17:00").
+    // short=true -> 2-Buchstaben-Tageskürzel. Ohne Sitzungen -> "Unregelmässig".
+    function formatSlots(m, short = false) {
+      if (!m.slots || m.slots.length === 0) return 'Unregelmässig';
+      const dayLabel = d => short ? (DAYS_DE[d] || d).slice(0, 2) : (DAYS_DE[d] || d);
+      const byTime = new Map();
+      m.slots.forEach(s => {
+        const t = (s.timeStartMin !== null && s.timeEndMin !== null)
+          ? `${minutesToTimeString(s.timeStartMin)}-${minutesToTimeString(s.timeEndMin)}`
+          : '';
+        if (!byTime.has(t)) byTime.set(t, []);
+        if (!byTime.get(t).includes(s.dayName)) byTime.get(t).push(s.dayName);
+      });
+      const parts = [];
+      byTime.forEach((dayNames, t) => {
+        const ordered = DAYS_ORDER.filter(d => dayNames.includes(d));
+        const daysStr = ordered.map(dayLabel).join(', ');
+        parts.push(t ? `${daysStr} ${t}` : daysStr);
+      });
+      return parts.join(' · ');
     }
     
     function formatInputDate(dateObj) {
