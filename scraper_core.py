@@ -323,7 +323,9 @@ def fetch_all_universities(semester_value, progress_cb=None):
     """Lädt alle Hochschulen eines Semesters mit Details und gibt eine
     deduplizierte Liste von Dashboard-Datensätzen zurück.
 
-    progress_cb(phase, done, total, message) — optional, für Live-Fortschritt.
+    progress_cb(phase, done, total, message, title="") — optional, für Live-
+    Fortschritt. `title` ist in der details-Phase der blanke Modul-Titel des
+    zuletzt fertig geladenen Moduls (für die Live-Liste), sonst leer.
     """
     universities, semesters, _ = load_available_facets()
 
@@ -356,7 +358,8 @@ def fetch_all_universities(semester_value, progress_cb=None):
                     msg = f"Geladen: {title} ({_uni}, {_i + 1}/{n_unis})"
                 else:
                     msg = f"Details {_uni} ({_i + 1}/{n_unis})"
-                progress_cb("details", done, total, msg)
+                # 5. Arg: blanker Titel für die Live-Liste im Ladescreen
+                progress_cb("details", done, total, msg, title)
 
         enrich_with_details(raw, progress_cb=_cb)
 

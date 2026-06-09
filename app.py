@@ -68,8 +68,8 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 app = Flask(__name__)
 
-# Ladezustand pro Semester: {sem: {state, phase, done, total, message, count}}
-# state: idle | loading | ready | error
+# Ladezustand pro Semester: {sem: {state, phase, done, total, message, count, title}}
+# state: idle | loading | ready | error; title: zuletzt geladener Modul-Titel
 STATUS = {}
 _LOCK = threading.Lock()
 
@@ -88,11 +88,13 @@ def _set_status(semester, **kwargs):
 def _background_load(semester):
     """Scrapt alle Hochschulen + Details für ein Semester und schreibt den Cache."""
     _set_status(semester, state="loading", phase="search", done=0, total=0,
-                message="Starte Laden …", count=0)
+                message="Starte Laden …", count=0, title="")
 
-    def progress_cb(phase, done, total, message):
+    def progress_cb(phase, done, total, message, title=""):
+        # title = zuletzt fertig geladenes Modul; das Frontend sammelt daraus
+        # eine kurze Live-Liste (nur als Gefühl, nicht vollständig).
         _set_status(semester, state="loading", phase=phase, done=done,
-                    total=total, message=message)
+                    total=total, message=message, title=title)
 
     try:
         records = scraper_core.fetch_all_universities(semester, progress_cb=progress_cb)
