@@ -89,6 +89,11 @@ def normalize_record(raw, index=0):
     if not rec.get("planSemesterModulId"):
         rec["planSemesterModulId"] = f"EXTRA_{index}"
 
+    # Strukturierte Sitzungsliste optional durchreichen (Liste, nicht joinen).
+    # Fehlt sie, leitet das Frontend Tag/Zeit aus den Flachfeldern ab.
+    sessions = raw.get("lektionSessions", [])
+    rec["lektionSessions"] = sessions if isinstance(sessions, list) else []
+
     rec["isExtra"] = True
     return rec
 
